@@ -11,5 +11,5 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 INSERT INTO users (username, password, role) 
-VALUES ('ucsc', 'ucsc', 'resident')
+VALUES ('ucsc', '$2y$10$5Jg5H0n61N3QVyFD1e53g.F.XvysjBBUvgi0Lq/80IDREPfezryG.', 'resident')
 ON DUPLICATE KEY UPDATE id=id;
