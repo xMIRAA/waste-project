@@ -46,7 +46,7 @@ The database schema creates these demo users:
 
 - Resident account
   - Username: ucsc
-  - Password: 123456
+  - Password: ucsc
 
 - Admin account
   - Username: admin
