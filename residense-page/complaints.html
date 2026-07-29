@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Web Template</title>
+    <link rel="stylesheet" type="text/css" href="layout.css">
+    <link rel="stylesheet" type="text/css" href="menu.css">
+</head>
+<body>
+    <div class="Container">
+        
+        <!-- Banner area -->
+        <div class="top">
+    <!-- 1. Logo on the left -->
+    <img class="imgl" src="https://img.magnific.com/premium-vector/illustration-waste-management-logo-design-vector-logo-combination-dustbin-with-recycle-symbol_629524-630.jpg?w=2000" alt="Logo" />
+    
+    <!-- 2. Title perfectly in the center -->
+    <h1>Waste Solution</h1>
+    
+    <!-- 3. Menu and Sign In grouped together on the right -->
+    <div class="right-menu">
+        
+        <!-- Your navigation menu -->
+        <ul>
+            <li><a href="residenceHome.html">Home</a></li>
+            <li class="dropdown"><a href="Recuestpickup.html" class="dropbtn">Request Pickup</a>
+                
+            </li>
+            <li class="dropdown"><a href="complaints.html" class="dropbtn">Complaints</a>
+                
+            </li>
+            
+            
+            <li class="dropdown"><a href="residenceHome.html#schedule" class="dropbtn"> Schdeule</a>
+                
+            </li>
+            <li class="dropdown"><a href="help.html" class="dropbtn">Help</a></li>
+        </ul>
+        
+        <!-- Sign In button placed LAST so it sits on the far right edge -->
+        <a href="#" class="Logout-btn">Log out</a>
+        
+    </div>
+</div>
+
+        <!-- Content area -->
+        <div id="content">
+            <div class="imagecont">
+                <img src="https://img.magnific.com/premium-photo/waste-bin-with-full-electronics-e-waste-recycling-concept_1209887-1038.jpg" alt="Waste Management">
+            </div>
+            <div class="text">
+                <h1>Submit a complalint</h1>
+                <p>If you experince any issues related to waste collection services, you can report them using the form below.</p>
+
+                <table><form>
+                    <tr><td>User name:</td><td><input type="text" name="name" size="20"></td></tr>
+                    <tr><td>Complaint Category:</td><td><select name="waste_type" >
+                        <option>Missed Waste Collection</option>
+                        <option>Overflowing Waste Bin</option>
+                        <option>Illegal Waste Dumping</option>
+                        <option>Damaged Waste Bin</option>
+                        <option>Collection Vehical Issue</option>
+                        
+                        <option>Other</option>
+                    </select></td></tr>
+                    
+                    <tr><td>Selecte the date:</td><td> <input type="date" name="date"></td><tr>
+                    <tr><td>Discription:</td><td><textarea cols="30" rows="3"></textarea></td></tr>
+                    <tr><td></td><td><input type="submit" value="submit" class="submit">&nbsp;<input type="Reset" value="reset" class="reset"></td><tr>
+                </form></table>
+
+
+                
+            </div>
+            
+        </div>
+        
+    </div>
+</body>
+</html>
