@@ -1,0 +1,256 @@
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+.Container {
+    width: 100%;
+    height: 100%;
+    color: #15920c;
+    border: 1px solid #15920c;
+    box-sizing: border-box;
+}
+
+
+.top {
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding: 10px 20px;
+    background-color: white;
+    border-bottom: 2px solid green;
+}
+
+
+.imgl {
+   
+    width: 100px;
+    height: 75px;
+}
+
+
+.top h1 {
+    position: absolute;
+    left: 20%;
+    transform: translateX(-50%);
+    margin: 0;
+    color: #096c02;
+    white-space: nowrap; /* Prevents the title from wrapping into two lines */
+    z-index: 0; /* Ensures the text stays on top */
+}
+
+.right-menu ul {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    background-color: transparent;
+}
+.right-menu {
+    margin-left: auto; /* Pushes the entire block to the far right */
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Adds space between the menu and the Sign In button */
+}
+
+
+.sign-in-btn {
+    background-color: #15920c;
+    color: white;
+    padding: 10px 25px;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: bold;
+    border: 2px solid #15920c;
+    white-space: nowrap;
+}
+
+
+.sign-in-btn:hover {
+    background-color: white;
+    color: #15920c;
+}
+
+#content {
+    display: flex;
+    min-height: 80vh; 
+}
+
+.text {
+    width: 50%; 
+    background: #649a05;
+    color: white;
+    padding: 60px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.imagecont {
+    width: 50%;
+}
+
+.imagecont img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.btn {
+    display: inline-block;
+    width: fit-content;
+    padding: 15px 30px;
+    background: white;
+    color: green;
+    text-decoration: none;
+    border-radius: 30px;
+    font-weight: bold;
+    margin-top: 15px;
+}
+/*these are for residence home page*/
+
+.Logout-btn {
+    background-color: #bd0a0a;
+    color: white;
+    padding: 10px 25px;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: bold;
+    border: 2px solid #bd0a0a;
+    white-space: nowrap;
+}
+
+
+.Logout-btn:hover {
+    background-color: white;
+    color: #c10d0d;
+}
+/* Next Collection card styling inside the green panel */
+.pickup-card {
+    background: rgba(255, 255, 255, 0.15); /* Subtle transparent white background */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px; /* 12px rounded corners */
+    padding: 15px 20px;
+    margin: 15px 0 20px 0;
+    max-width: 320px;
+}
+
+.pickup-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #e1f5ee; /* Light tint color */
+    display: block;
+    margin-bottom: 4px;
+}
+
+.pickup-time {
+    margin: 0;
+    font-size: 22px;
+    font-weight: bold;
+    color: #ffffff;
+}
+
+/*these are for requestpickup page*/
+
+.submit {
+    background-color: #e7dcdc;
+    color: rgb(19, 225, 15);
+    padding: 10px 25px;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: bold;
+    border: 2px solid #34bd0a;
+    white-space: nowrap;
+}
+
+
+.submit:hover {
+    background-color: rgb(21, 203, 37);
+    color: #e9f0e9;
+}
+
+.reset {
+    background-color: #e0d7d7;
+    color: rgb(197, 19, 19);
+    padding: 10px 25px;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: bold;
+    border: 2px solid #bd0a0a;
+    white-space: nowrap;
+}
+
+
+.reset:hover {
+    background-color: rgb(208, 11, 11);
+    color: #e4dada;
+}
+
+/* this is for schedule page */
+
+/* Enable smooth scrolling for the entire page */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Schedule Section Container */
+.schedule-section {
+    padding: 80px 20px;
+    background-color: #f3f8fa; /* Light gray/blue to contrast with the white/green */
+    text-align: center;
+    border-top: 2px solid #15920c;
+    min-height: 100vh;
+}
+
+.schedule-section h2 {
+    color: #15920c;
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.schedule-section p {
+    color: #555;
+    margin-bottom: 40px;
+    font-size: 16px;
+}
+
+/* Table Styling */
+.schedule-table {
+    width: 80%;
+    max-width: 900px;
+    margin: 0 auto;
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0px 8px 16px rgba(0,0,0,0.1); /* Adds a soft shadow to lift it off the page */
+    border-radius: 8px;
+    overflow: hidden; /* Keeps the rounded corners neat */
+}
+
+.schedule-table th, 
+.schedule-table td {
+    padding: 15px 20px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+}
+
+.schedule-table th {
+    background-color: #15920c;
+    color: white;
+    font-size: 18px;
+}
+
+/* Stripe effect for table rows */
+.schedule-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* Hover effect for interactivity */
+.schedule-table tr:hover {
+    background-color: #e6f7e5; /* Very light green */
+    transition: background-color 0.3s ease;
+}
