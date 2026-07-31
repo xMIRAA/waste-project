@@ -38,7 +38,8 @@ A simple and modern PHP-based web application for managing waste collection serv
 3. Import the database schema from database/schema.sql.
 
 4. Open the app in your browser:
-   - http://localhost/waste-project/auth/login.php
+   - Home page: http://localhost/waste-project/
+   - Login page: http://localhost/waste-project
 
 ## 🔐 Default Login Accounts
 
@@ -51,6 +52,8 @@ The database schema creates these demo users:
 - Admin account
   - Username: admin
   - Password: admin123
+
+> If you only need to test the basic flow, the resident account with username ucsc and password ucsc is enough.
 
 ## 📌 Notes
 
