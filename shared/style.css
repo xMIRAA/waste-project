@@ -29,7 +29,7 @@ body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #f3ff
 .error-text { color: #993c1d; font-size: 13px; margin-bottom: 12px; }
 
 label { font-size: 13px; color: #5f5e5a; display: block; margin-bottom: 4px; }
-input[type=text], input[type=password], input[type=date], select {
+input[type=text],input[type=tel], input[type=email], input[type=password], input[type=date], select {
   width: 100%; box-sizing: border-box; padding: 9px 10px; margin-bottom: 14px;
   border: 1px solid #d3d1c7; border-radius: 8px; font-size: 14px;
 }
