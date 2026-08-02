@@ -33,3 +33,5 @@ input[type=text], input[type=password], input[type=date], select {
 .card-white { background: #fff; border: 1px solid #e2e0d6; border-radius: 12px; padding: 20px; margin-bottom: 12px; }
 .pill-pending { background: #FAC775; color: #412402; padding: 3px 12px; border-radius: 20px; font-size: 12px; }
 .pill-done { background: #C0DD97; color: #173404; padding: 3px 12px; border-radius: 20px; font-size: 12px; }
+
+
