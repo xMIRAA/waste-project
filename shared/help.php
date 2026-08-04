@@ -51,8 +51,7 @@ require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/auth/auth_guard.php';
     <section class="card">
       <h2>Frequently Asked Questions</h2>
       <dl>
-        <dt>How do I reset my password?</dt>
-        <dd>Contact an administrator to reset your account password if password reset is not available in the system.</dd>
+      
         <dt>What should I do if a collection is missed?</dt>
         <dd>Submit a complaint through the Complaints page and include details about the missed service.</dd>
         <dt>Can residents access admin pages?</dt>
@@ -67,8 +66,8 @@ require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/auth/auth_guard.php';
       <ul>
         <li>Keep your login details private and log out after using the system.</li>
         <li>Use the Home Dashboard for the fastest access to core features.</li>
-        <li>Check the schedule page regularly for upcoming collection dates.</li>
-        <li>Provide clear details when filing a complaint to speed resolution.</li>
+        
+     
       </ul>
     </section>
 
@@ -77,9 +76,7 @@ require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/auth/auth_guard.php';
       <p>If you need more help, email support@cleancity.example or contact your local waste management office.</p>
     </section>
 
-    <footer class="card" style="text-align: center; margin-top: 24px;">
-      <p>&copy; <?= date('Y') ?> CleanCity Waste Collection Management System</p>
-    </footer>
+   
   </div>
 </body>
 </html>
