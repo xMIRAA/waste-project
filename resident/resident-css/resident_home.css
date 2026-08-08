@@ -47,7 +47,11 @@
 
 .pickup-table td{
     padding:12px;
+<<<<<<< HEAD
     border-bottom:1px solid #e2e0d6;
+=======
+    border-bottom:1px solid #f3c6c6;
+>>>>>>> 98123f0a699a452d3c96efc5d763f75f345e9ed9
 }
 
 .information-card ul{
@@ -59,9 +63,18 @@
 
 .dashboard-container{
     flex-direction:column;
+<<<<<<< HEAD
+=======
+    border-top: 3px solid #1D9E75;
+>>>>>>> 98123f0a699a452d3c96efc5d763f75f345e9ed9
 }
 
 }
 .page-content{
     border-top: 3px solid #1D9E75;
+<<<<<<< HEAD
 }
+=======
+}
+
+>>>>>>> 98123f0a699a452d3c96efc5d763f75f345e9ed9
