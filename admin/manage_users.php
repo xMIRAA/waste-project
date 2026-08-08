@@ -41,10 +41,7 @@ $users = [
   <meta charset="UTF-8">
   <title>Manage Users - CleanCity</title>
 
-  <link rel="stylesheet" href="/waste-project/admin/css/style.css">
   <link rel="stylesheet" href="/waste-project/shared/style.css">
-  <link rel="stylesheet" href="/waste-project/admin/css/userformv1.css">
-  <link rel="stylesheet" href="/waste-project/admin/css/userformv2.css">
 </head>
 <body>
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/waste-project/shared/navbar.php'; ?>

@@ -61,8 +61,7 @@ require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/auth/auth_guard.php';
       <ul>
         <li>Simple resident workflows for requests and issue reporting.</li>
         <li>Clear admin controls for managing schedules and users.</li>
-        <li>Responsive design for desktop and mobile access.</li>
-        <li>Built with plain PHP, HTML, CSS and vanilla JavaScript for easy maintenance.</li>
+    
       </ul>
     </section>
 
@@ -70,9 +69,7 @@ require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/auth/auth_guard.php';
       <a href="/waste-project/shared/help.php" class="btn-primary">Visit Help Center</a>
     </section>
 
-    <footer class="card" style="text-align: center; margin-top: 24px;">
-      <p>&copy; <?= date('Y') ?> CleanCity Waste Collection Management System</p>
-    </footer>
+    
   </div>
 </body>
 </html>
