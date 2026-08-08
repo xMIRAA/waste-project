@@ -1,0 +1,261 @@
+/* user data form */
+
+
+
+
+.form-card-wrapper{
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: column;
+    padding: 24px;
+    box-sizing: border-box; 
+
+
+}
+
+.form-card{
+    background-color: #ffffff;
+    border: 1px solid #e2e0d6;
+    border-radius: 16px;
+    box-shadow: 0px 8px 24px rgba(0,0,0,0.05);
+    padding: 28px 32px;
+    width: 100%;
+    max-width: 420px;
+    box-sizing: border-box;
+}
+
+.form-title{
+    margin: 0 0 4px 0;
+    font-size: 20px;
+    color: #04342c;
+}
+
+.form-subtitle{
+    margin: 0 0 22px 0;
+    font-size: 13px;
+    color: #5f5e5a;
+}
+
+/* Flexbox layout for the form fields */
+.waste-form{
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group{
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 4px;
+}
+
+.form-group-mail{
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 4px;
+}
+
+/* Address group: fieldset containing street/home number/city/sub-city */
+.address-group{
+    border: 1px solid #d3d1c7;
+    border-radius: 10px;
+    padding: 14px 14px 0;
+    margin-bottom: 14px;
+}
+
+.address-group legend{
+    font-size: 13px;
+    color: #5f5e5a;
+    padding: 0 6px;
+}
+
+.address-row{
+    display: flex;
+    gap: 12px;
+}
+
+.address-field{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Recyclable / State radio rows, laid out with flexbox */
+.radio-row{
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.radio-option{
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border: 1px solid #d3d1c7;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #5f5e5a;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.radio-option input[type="radio"]{
+    accent-color: #1D9E75;
+    margin: 0;
+}
+
+.radio-option:has(input:checked){
+    background-color: #1D9E75;
+    border-color: #1D9E75;
+    color: #ffffff;
+}
+
+
+
+/* Table section: the "Registered Users" and "Search Results" cards */
+.user-schedule-section {
+    background-color: #F1EFE8;
+    border: 1px solid #e2e0d6;
+    border-radius: 16px;
+    box-shadow: 0px 8px 24px rgba(0,0,0,0.05);
+    padding: 30px;
+    box-sizing: border-box;
+    margin-top: 24px;
+}
+
+.user-schedule-section h2 {
+    color: #04342c;
+    font-size: 22px;
+    margin-bottom: 6px;
+}
+
+.user-schedule-section p {
+    color: #5f5e5a;
+    margin-bottom: 24px;
+    font-size: 14px;
+}
+
+/* Search form feedback */
+.alert {
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 16px;
+}
+
+.success-alert {
+    background-color: #e1f5ee;
+    color: #085041;
+    border: 1px solid #1d9e75;
+}
+
+.error-alert {
+    background-color: #fde8e8;
+    color: #9c1c1c;
+    border: 1px solid #f5c6cb;
+}
+
+/* table css */
+
+
+.entries-container{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.entry-card{
+    flex: 1 1 280px;
+    max-width: 320px;
+    background: #f1efe8;
+    border: 1px solid #e2e0d6;
+    border-radius: 12px;
+    padding: 16px 18px;
+    box-sizing: border-box;
+}
+
+.entry-card-head{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.entry-name{
+    font-size: 15px;
+    font-weight: bold;
+    color: #04342c;
+}
+
+.entry-row{
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 8px;
+}
+
+.entry-row:last-child{
+    margin-bottom: 0;
+}
+
+.entry-label{
+    font-size: 12px;
+    color: #5f5e5a;
+    margin-bottom: 2px;
+}
+
+.entry-value{
+    font-size: 13px;
+    color: #2c2c2a;
+}
+
+.confirm-form{
+    margin-top: 14px;
+}
+
+
+
+/* Explicit Table Styling */
+.schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #e2e0d6;
+    margin-top: 10px;
+}
+
+.schedule-table th {
+    background-color: #04342c;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: left;
+    padding: 14px 16px;
+    border-bottom: 2px solid #e2e0d6;
+}
+
+.schedule-table td {
+    color: #2c2c2a;
+    font-size: 14px;
+    text-align: left;
+    padding: 14px 16px;
+    border-bottom: 1px solid #e2e0d6;
+}
+
+.schedule-table tr:last-child td {
+    border-bottom: none;
+}
+
+.schedule-table tr:nth-child(even) {
+    background-color: #faf9f5;
+}
+
+.schedule-table tr:hover {
+    background-color: #e1f5ee;
+    transition: background-color 0.2s ease;
+}

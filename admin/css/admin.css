@@ -1,0 +1,118 @@
+/* ===========================
+   Admin Home Page
+=========================== */
+
+/* Quick-link flexbox cards */
+.admin-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.admin-link-card {
+    flex: 1 1 220px;
+    background-color: #ffffff;
+    border: 1px solid #e2e0d6;
+    border-radius: 12px;
+    padding: 22px;
+    text-decoration: none;
+    color: #2c2c2a;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.admin-link-card:hover {
+    background-color: #e1f5ee;
+    border-color: #1d9e75;
+    transform: translateY(-2px);
+}
+
+.admin-link-icon {
+    font-size: 26px;
+    margin-bottom: 10px;
+}
+
+.admin-link-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #04342c;
+    margin-bottom: 6px;
+}
+
+.admin-link-desc {
+    font-size: 13px;
+    color: #5f5e5a;
+    line-height: 1.4;
+}
+
+@media (max-width: 700px) {
+    .admin-links {
+        flex-direction: column;
+    }
+}
+
+/* User details card/table */
+.user-records-card {
+    padding: 30px;
+}
+
+.user-records-card h2 {
+    color: #04342c;
+    font-size: 22px;
+    margin-bottom: 6px;
+}
+
+.user-records-card > p {
+    color: #5f5e5a;
+    margin-bottom: 24px;
+    font-size: 14px;
+}
+
+.user-records-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #e2e0d6;
+    margin-top: 10px;
+}
+
+.user-records-table th {
+    background-color: #04342c;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: left;
+    padding: 14px 16px;
+    border-bottom: 2px solid #e2e0d6;
+}
+
+.user-records-table td {
+    color: #2c2c2a;
+    font-size: 14px;
+    text-align: left;
+    padding: 14px 16px;
+    border-bottom: 1px solid #e2e0d6;
+    vertical-align: middle;
+}
+
+.user-records-table tr:last-child td {
+    border-bottom: none;
+}
+
+.user-records-table tr:nth-child(even) {
+    background-color: #faf9f5;
+}
+
+.user-records-table tr:hover {
+    background-color: #e1f5ee;
+    transition: background-color 0.2s ease;
+}
+
+@media (max-width: 900px) {
+    .user-records-table {
+        display: block;
+        overflow-x: auto;
+    }
+}

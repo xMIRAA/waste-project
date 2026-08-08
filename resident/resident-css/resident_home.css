@@ -1,0 +1,67 @@
+.welcome-card{
+    padding:30px;
+    margin-bottom:30px;
+
+}
+
+.welcome-card h2{
+    color:#085041;
+    margin-bottom:10px;
+}
+
+.welcome-card p{
+    color:#555;
+    line-height:1.7;
+}
+
+.dashboard-container{
+    display:flex;
+    gap:25px;
+    flex-wrap:wrap;
+    margin: 20px ;
+}
+
+.next-pickup-card{
+    flex:2;
+    padding:25px;
+    background-color: rgb(197, 243, 221);
+}
+
+.information-card{
+    flex:1;
+    padding:25px;
+    background:#96f6d4;
+}
+
+.next-pickup-card h3,
+.information-card h3{
+    color:#085041;
+    margin-bottom:20px;
+    margin-left: 20px;
+}
+
+.pickup-table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.pickup-table td{
+    padding:12px;
+    border-bottom:1px solid #e2e0d6;
+}
+
+.information-card ul{
+    padding-left:20px;
+    line-height:1.8;
+}
+
+@media (max-width:900px){
+
+.dashboard-container{
+    flex-direction:column;
+}
+
+}
+.page-content{
+    border-top: 3px solid #1D9E75;
+}
