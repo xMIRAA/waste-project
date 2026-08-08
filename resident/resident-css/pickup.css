@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 /*these are for pickup request page*/
 .page-content{
 =======
@@ -8,6 +9,10 @@
     
     padding:20px;
 >>>>>>> 98123f0a699a452d3c96efc5d763f75f345e9ed9
+=======
+/*these are for pickup request page*/
+.page-content{
+>>>>>>> admin-v1
     border-top: 3px solid #1D9E75;
 }
 
@@ -27,10 +32,15 @@
     flex:2;
     padding:25px;
 <<<<<<< HEAD
+<<<<<<< HEAD
     max-width:none;
     border-radius:12px;
 =======
 >>>>>>> 98123f0a699a452d3c96efc5d763f75f345e9ed9
+=======
+    max-width:none;
+    border-radius:12px;
+>>>>>>> admin-v1
 }
 
 .guide-card{
@@ -56,6 +66,7 @@ label{
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 input,
 select,
@@ -73,6 +84,8 @@ textarea{
 }
 
 >>>>>>> 98123f0a699a452d3c96efc5d763f75f345e9ed9
+=======
+>>>>>>> admin-v1
 button{
     margin-top:25px;
     width:200px;

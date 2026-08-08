@@ -3,17 +3,24 @@
 =========================== */
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> admin-v1
 .page-content{
     padding:30px 20px;
     border-top: 3px solid #1D9E75;
 }
 
+<<<<<<< HEAD
 =======
 >>>>>>> 98123f0a699a452d3c96efc5d763f75f345e9ed9
+=======
+>>>>>>> admin-v1
 .schedule-section {
     padding: 80px 20px;
     background-color: #E1F5EE; /* Project Tint */
     text-align: center;
+<<<<<<< HEAD
 <<<<<<< HEAD
     min-height: 100vh;
     border-radius: 10px;
@@ -21,6 +28,10 @@
     border-top: 3px solid #1D9E75; /* Primary */
     min-height: 100vh;
 >>>>>>> 98123f0a699a452d3c96efc5d763f75f345e9ed9
+=======
+    min-height: 100vh;
+    border-radius: 10px;
+>>>>>>> admin-v1
 }
 
 .schedule-section h2 {
