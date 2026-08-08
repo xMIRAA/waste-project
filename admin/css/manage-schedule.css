@@ -1,0 +1,201 @@
+/* ===========================
+   Manage Schedule Layout & Theme
+   (Adopted from manage_users.php layout)
+=========================== */
+
+.page-content {
+    padding: 30px 20px;
+    border-top: 3px solid #1D9E75;
+}
+
+.udf-layout .form-card-wrapper {
+    flex: 0 1 420px;
+}
+
+.udf-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+@media(min-width: 992px) {
+    .udf-layout {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+}
+
+/* Form Card Wrapper & Styling */
+.form-card-wrapper {
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.form-card {
+    background-color: #ffffff;
+    border: 1px solid #e2e0d6;
+    border-radius: 16px;
+    box-shadow: 0px 8px 24px rgba(0,0,0,0.05);
+    padding: 28px 32px;
+    width: 100%;
+    max-width: 420px;
+    box-sizing: border-box;
+}
+
+.form-title {
+    margin: 0 0 4px 0;
+    font-size: 20px;
+    color: #04342c;
+}
+
+.form-subtitle {
+    margin: 0 0 22px 0;
+    font-size: 13px;
+    color: #5f5e5a;
+}
+
+.waste-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    margin-bottom: 6px;
+    color: #04342c;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #d3d1c7;
+    border-radius: 8px;
+    background-color: #faf9f5;
+    color: #2c2c2a;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.form-group input:focus {
+    border-color: #1D9E75;
+    outline: none;
+    background-color: #ffffff;
+}
+
+/* Alerts */
+.alert {
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 16px;
+}
+
+.success-alert {
+    background-color: #e1f5ee;
+    color: #085041;
+    border: 1px solid #1d9e75;
+}
+
+.error-alert {
+    background-color: #fde8e8;
+    color: #9c1c1c;
+    border: 1px solid #f5c6cb;
+}
+
+/* Submit Button */
+.btn-primary.full {
+    width: 100%;
+    padding: 11px;
+    background-color: #1D9E75;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-primary.full:hover {
+    background-color: #188663;
+}
+
+
+/* ===========================
+   Table Section & Table Styling 
+=========================== */
+
+.user-schedule-section {
+    flex: 1;
+    padding: 30px;
+    background-color: #F1EFE8;
+    border: 1px solid #e2e0d6;
+    border-radius: 16px;
+    box-sizing: border-box;
+    box-shadow: 0px 8px 24px rgba(0,0,0,0.05);
+    justify-content: center; 
+    gap: 32px;
+}
+
+.user-schedule-section h2 {
+    color: #04342c;
+    font-size: 22px;
+    margin-bottom: 6px;
+}
+
+.user-schedule-section p {
+    color: #5f5e5a;
+    margin-bottom: 24px;
+    font-size: 14px;
+}
+
+/* Explicit Table Styling */
+.schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #e2e0d6;
+    margin-top: 10px;
+}
+
+.schedule-table th {
+    background-color: #04342c;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: left;
+    padding: 14px 16px;
+    border-bottom: 2px solid #e2e0d6;
+}
+
+.schedule-table td {
+    color: #2c2c2a;
+    font-size: 14px;
+    text-align: left;
+    padding: 14px 16px;
+    border-bottom: 1px solid #e2e0d6;
+}
+
+.schedule-table tr:last-child td {
+    border-bottom: none;
+}
+
+.schedule-table tr:nth-child(even) {
+    background-color: #faf9f5;
+}
+
+.schedule-table tr:hover {
+    background-color: #e1f5ee;
+    transition: background-color 0.2s ease;
+}

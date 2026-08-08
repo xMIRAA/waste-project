@@ -1,0 +1,67 @@
+/* ===========================
+   Schedule Section
+=========================== */
+
+.page-content{
+    padding:30px 20px;
+    border-top: 3px solid #1D9E75;
+}
+
+.schedule-section {
+    padding: 80px 20px;
+    background-color: #E1F5EE; /* Project Tint */
+    text-align: center;
+    min-height: 100vh;
+    border-radius: 10px;
+}
+
+.schedule-section h2 {
+    color: #085041; /* Primary Dark */
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.schedule-section p {
+    color: #555;
+    margin-bottom: 40px;
+    font-size: 16px;
+}
+
+/*Schedule Table */
+
+.schedule-table {
+    width: 80%;
+    max-width: 900px;
+    margin: 0 auto;
+    border-collapse: collapse;
+    background-color: #F1EFE8; /* Neutral Card */
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.schedule-table th,
+.schedule-table td {
+    padding: 15px 20px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.schedule-table th {
+    background-color: #1D9E75; /* Primary */
+    color: #ffffff;
+    font-size: 18px;
+}
+
+.schedule-table tr:nth-child(even) {
+    background-color: #FAFAFA;
+}
+
+.schedule-table tr:hover {
+    background-color: #E1F5EE; /* Project Tint */
+    transition: background-color 0.3s ease;
+}
+
+.schedule-table td {
+    color: #333;
+}

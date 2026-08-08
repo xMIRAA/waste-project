@@ -1,0 +1,142 @@
+/* ===========================
+   Pickup Requests Page
+=========================== */
+
+.requests-card {
+    padding: 30px;
+}
+
+.requests-card h2 {
+    color: #04342c;
+    font-size: 22px;
+    margin-bottom: 6px;
+}
+
+.requests-card > p {
+    color: #5f5e5a;
+    margin-bottom: 24px;
+    font-size: 14px;
+}
+
+/* Feedback alerts */
+.alert {
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 16px;
+}
+
+.success-alert {
+    background-color: #e1f5ee;
+    color: #085041;
+    border: 1px solid #1d9e75;
+}
+
+.error-alert {
+    background-color: #fde8e8;
+    color: #9c1c1c;
+    border: 1px solid #f5c6cb;
+}
+
+/* Declined status pill (pending/done pills already come from the
+   shared style.css .pill-pending / .pill-done) */
+.pill-declined {
+    background: #F5C6CB;
+    color: #7a1f1f;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+/* Requests table */
+.requests-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #e2e0d6;
+    margin-top: 10px;
+}
+
+.requests-table th {
+    background-color: #04342c;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: left;
+    padding: 14px 16px;
+    border-bottom: 2px solid #e2e0d6;
+}
+
+.requests-table td {
+    color: #2c2c2a;
+    font-size: 14px;
+    text-align: left;
+    padding: 14px 16px;
+    border-bottom: 1px solid #e2e0d6;
+    vertical-align: middle;
+}
+
+.requests-table tr:last-child td {
+    border-bottom: none;
+}
+
+.requests-table tr:nth-child(even) {
+    background-color: #faf9f5;
+}
+
+.requests-table tr:hover {
+    background-color: #e1f5ee;
+    transition: background-color 0.2s ease;
+}
+
+/* Inline status-update form inside the last table cell */
+.requests-table td.update-cell {
+    white-space: nowrap;
+}
+
+.status-update-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: none;
+    margin: 0;
+}
+
+.status-update-form select {
+    width: auto;
+    height: 36px;
+    margin: 0;
+    padding: 0 10px;
+    font-size: 13px;
+    line-height: 34px;
+    border: 1px solid #d3d1c7;
+    border-radius: 8px;
+    box-sizing: border-box;
+    background-color: #ffffff;
+    vertical-align: middle;
+}
+
+.status-update-form .btn-primary {
+    height: 36px;
+    padding: 0 14px;
+    font-size: 13px;
+    white-space: nowrap;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: normal;
+}
+
+@media (max-width: 900px) {
+    .requests-table {
+        display: block;
+        overflow-x: auto;
+    }
+
+    .status-update-form {
+        flex-wrap: wrap;
+    }
+}

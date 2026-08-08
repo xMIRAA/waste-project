@@ -3,7 +3,7 @@ require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/auth/auth_guard.php';
 require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/database/db.php';
 
 requireAdmin();
-$active_page = 'reports';
+$active_page = 'pickup_requests';
 
 $status_message = '';
 $status_error   = '';
@@ -23,17 +23,17 @@ $allowed_statuses = ['pending', 'done', 'declined'];
  * UPDATE STATUS — pending / done / declined
  * ------------------------------------------------------------------- */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
-    $complaint_id = (int) ($_POST['complaint_id'] ?? 0);
-    $new_status   = $_POST['status'] ?? '';
+    $request_id = (int) ($_POST['request_id'] ?? 0);
+    $new_status = $_POST['status'] ?? '';
 
-    if ($complaint_id > 0 && in_array($new_status, $allowed_statuses, true)) {
-        $update_stmt = $conn->prepare("UPDATE complaints SET states = ? WHERE id = ?");
-        $update_stmt->bind_param("si", $new_status, $complaint_id);
+    if ($request_id > 0 && in_array($new_status, $allowed_statuses, true)) {
+        $update_stmt = $conn->prepare("UPDATE pickup_requests SET states = ? WHERE id = ?");
+        $update_stmt->bind_param("si", $new_status, $request_id);
 
         if ($update_stmt->execute()) {
-            $_SESSION['status_message'] = "Complaint #{$complaint_id} marked as " . ucfirst($new_status) . ".";
+            $_SESSION['status_message'] = "Request #{$request_id} marked as " . ucfirst($new_status) . ".";
         } else {
-            $_SESSION['status_error'] = "Failed to update the complaint. Please try again.";
+            $_SESSION['status_error'] = "Failed to update the request. Please try again.";
         }
 
         $update_stmt->close();
@@ -47,20 +47,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
 }
 
 /* ---------------------------------------------------------------------
- * FETCH ALL COMPLAINTS — joined with the submitting user
+ * FETCH ALL PICKUP REQUESTS — joined with the requesting user
  * ------------------------------------------------------------------- */
-$complaints = [];
+$requests = [];
 $fetch_stmt = $conn->prepare(
-    "SELECT c.id, c.complaint_type, c.complaint_subject, c.complaint_text, c.states, c.created_at,
+    "SELECT pr.id, pr.waste_type, pr.pickup_date, pr.time_slot, pr.notes, pr.states, pr.created_at,
             u.username
-     FROM complaints c
-     JOIN users u ON u.id = c.user_id
-     ORDER BY c.created_at DESC"
+     FROM pickup_requests pr
+     JOIN users u ON u.id = pr.user_id
+     ORDER BY pr.created_at DESC"
 );
 
 if ($fetch_stmt) {
     $fetch_stmt->execute();
-    $complaints = $fetch_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $requests = $fetch_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $fetch_stmt->close();
 }
 ?>
@@ -68,18 +68,18 @@ if ($fetch_stmt) {
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Reports - CleanCity</title>
+  <title>Pickup Requests</title>
   <link rel="stylesheet" href="/waste-project/shared/style.css">
-  <link rel="stylesheet" href="/waste-project/admin/css/reports.css">
+  <link rel="stylesheet" href="/waste-project/admin/css/pickup-req.css">
 </head>
 <body>
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/waste-project/shared/navbar.php'; ?>
 <div class="page-content">
 
-  <div class="card-white reports-card">
+  <div class="card-white requests-card">
 
-    <h2>Complaints</h2>
-    <p>View and manage all resident complaints from here.</p>
+    <h2>Pickup Requests</h2>
+    <p>View and manage all pickup requests from here.</p>
 
     <?php if (!empty($status_message)): ?>
         <div class="alert success-alert"><?php echo htmlspecialchars($status_message); ?></div>
@@ -88,50 +88,52 @@ if ($fetch_stmt) {
         <div class="alert error-alert"><?php echo htmlspecialchars($status_error); ?></div>
     <?php endif; ?>
 
-    <?php if (empty($complaints)): ?>
+    <?php if (empty($requests)): ?>
 
-        <p style="text-align:center; color:#555;">No complaints yet.</p>
+        <p style="text-align:center; color:#555;">No pickup requests yet.</p>
 
     <?php else: ?>
 
-        <table class="reports-table">
+        <table class="requests-table">
             <thead>
                 <tr>
                     <th>ID</th>
                     <th>Resident</th>
-                    <th>Type</th>
-                    <th>Subject</th>
-                    <th>Complaint</th>
+                    <th>Waste Type</th>
+                    <th>Pickup Date</th>
+                    <th>Time Slot</th>
+                    <th>Notes</th>
                     <th>Status</th>
-                    <th>Submitted On</th>
+                    <th>Requested On</th>
                     <th>Update</th>
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($complaints as $c): ?>
+                <?php foreach ($requests as $req): ?>
                     <tr>
-                        <td><?php echo (int) $c['id']; ?></td>
-                        <td><?php echo htmlspecialchars($c['username']); ?></td>
-                        <td><?php echo htmlspecialchars($c['complaint_type']); ?></td>
-                        <td><?php echo htmlspecialchars($c['complaint_subject']); ?></td>
-                        <td class="complaint-text"><?php echo nl2br(htmlspecialchars($c['complaint_text'])); ?></td>
+                        <td><?php echo (int) $req['id']; ?></td>
+                        <td><?php echo htmlspecialchars($req['username']); ?></td>
+                        <td><?php echo htmlspecialchars($req['waste_type']); ?></td>
+                        <td><?php echo date('d M Y', strtotime($req['pickup_date'])); ?></td>
+                        <td><?php echo htmlspecialchars($req['time_slot']); ?></td>
+                        <td><?php echo htmlspecialchars(($req['notes'] ?? '') !== '' ? $req['notes'] : '—'); ?></td>
                         <td>
-                            <?php if ($c['states'] === 'pending'): ?>
+                            <?php if ($req['states'] === 'pending'): ?>
                                 <span class="pill-pending">Pending</span>
-                            <?php elseif ($c['states'] === 'done'): ?>
+                            <?php elseif ($req['states'] === 'done'): ?>
                                 <span class="pill-done">Done</span>
                             <?php else: ?>
                                 <span class="pill-declined">Declined</span>
                             <?php endif; ?>
                         </td>
-                        <td><?php echo date('d M Y', strtotime($c['created_at'])); ?></td>
+                        <td><?php echo date('d M Y', strtotime($req['created_at'])); ?></td>
                         <td class="update-cell">
                             <form method="POST" class="status-update-form">
-                                <input type="hidden" name="complaint_id" value="<?php echo (int) $c['id']; ?>">
+                                <input type="hidden" name="request_id" value="<?php echo (int) $req['id']; ?>">
                                 <select name="status">
-                                    <option value="pending" <?php echo $c['states'] === 'pending' ? 'selected' : ''; ?>>Pending</option>
-                                    <option value="done" <?php echo $c['states'] === 'done' ? 'selected' : ''; ?>>Done</option>
-                                    <option value="declined" <?php echo $c['states'] === 'declined' ? 'selected' : ''; ?>>Declined</option>
+                                    <option value="pending" <?php echo $req['states'] === 'pending' ? 'selected' : ''; ?>>Pending</option>
+                                    <option value="done" <?php echo $req['states'] === 'done' ? 'selected' : ''; ?>>Done</option>
+                                    <option value="declined" <?php echo $req['states'] === 'declined' ? 'selected' : ''; ?>>Declined</option>
                                 </select>
                                 <button type="submit" name="update_status" value="1" class="btn-primary">Update</button>
                             </form>

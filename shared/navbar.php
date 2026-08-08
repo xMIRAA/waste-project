@@ -7,7 +7,7 @@
       <a href="/waste-project/shared/home.php">Home</a>
       <a href="/waste-project/admin/manage_users.php">Manage users</a>
       <a href="/waste-project/admin/manage_schedule.php">Manage schedule</a>
-      <a href="/waste-project/admin/reports.php">Pickup Requests</a>
+      <a href="/waste-project/admin/pickup_request.php">Pickup Requests</a>
       <a href="/waste-project/admin/reports.php">Reports</a>
       <a href="/waste-project/shared/functionalities.php">Functionalities</a>
       <a href="/waste-project/shared/help.php">Help</a>

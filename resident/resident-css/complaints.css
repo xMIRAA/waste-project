@@ -1,0 +1,116 @@
+/* Complaint Section */
+.page-content{
+    padding:30px 20px;
+    border-top: 3px solid #1D9E75;
+}
+
+/*.complaints-section{
+    padding:30px 20px;
+    border-top: 3px solid #1D9E75;
+} */
+
+.complaints-section h2{
+    color:#085041;
+    text-align:center;
+    margin-bottom:10px;
+}
+
+.complaints-section p{
+    text-align:center;
+    color:#555;
+    margin-bottom:30px;
+}
+
+/* Form + Guide */
+
+.complaint-container{
+    display:flex;
+    gap:20px;
+    flex-wrap:wrap;
+    margin-bottom:30px;
+}
+
+.complaint-form{
+    flex:2;
+    padding:25px;
+}
+
+.complaint-guide{
+    flex:1;
+    padding:25px;
+    background:#E1F5EE;
+}
+
+.complaint-guide ul{
+    padding-left:20px;
+    line-height:1.8;
+}
+
+/* Form */
+
+form{
+    display:flex;
+    flex-direction:column;
+}
+
+label{
+    margin-top:15px;
+    margin-bottom:8px;
+    font-weight:bold;
+}
+
+button{
+    margin-top:20px;
+    width:180px;
+}
+
+/* Complaint History */
+
+.complaint-history{
+    padding:25px;
+}
+
+.complaint-history table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
+}
+
+.complaint-history th{
+    background:#1D9E75;
+    color:white;
+    padding:12px;
+    text-align:left;
+}
+
+.complaint-history td{
+    padding:12px;
+    border-bottom:1px solid #ddd;
+}
+
+.complaint-history tr:nth-child(even){
+    background:#f8f8f8;
+}
+
+.complaint-history tr:hover{
+    background:#E1F5EE;
+}
+
+@media(max-width:900px){
+
+.complaint-container{
+    flex-direction:column;
+}
+
+button{
+    width:100%;
+}
+
+.complaint-history table{
+    display:block;
+    overflow-x:auto;
+    margin:30px auto;
+    padding: 30px;
+}
+
+}
