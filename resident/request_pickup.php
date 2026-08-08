@@ -2,65 +2,225 @@
 require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/auth/auth_guard.php';
 require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/database/db.php';
 
-$active_page = 'pickup';
+
+$active_page = 'request_pickup';
+
 $message = '';
-$error = '';
+
+/* Submit Pickup Request */
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $pickupType = isset($_POST['pickup_type']) ? trim($_POST['pickup_type']) : '';
-    $preferredDate = isset($_POST['preferred_date']) ? trim($_POST['preferred_date']) : '';
 
-    if (!in_array($pickupType, array('general', 'recycling', 'bulk', 'hazardous'), true)) {
-        $error = 'Please select a valid pickup type.';
-    } elseif (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $preferredDate)) {
-        $error = 'Please choose a preferred date.';
-    } else {
-        $stmt = $conn->prepare('INSERT INTO pickup_requests (user_id, pickup_type, preferred_date, status) VALUES (?, ?, ?, "pending")');
-        $stmt->bind_param('iss', $_SESSION['user_id'], $pickupType, $preferredDate);
-        $stmt->execute();
-        $stmt->close();
+    $user_id = $_SESSION['user_id'];
 
-        $message = 'Pickup request submitted successfully.';
+    $waste_type = trim($_POST['waste_type']);
+    $pickup_date = $_POST['pickup_date'];
+    $time_slot = trim($_POST['time_slot']);
+    $notes = trim($_POST['notes']);
+
+    $stmt = $conn->prepare(
+        "INSERT INTO pickup_requests
+        (user_id, waste_type, pickup_date, time_slot, notes)
+        VALUES (?, ?, ?, ?, ?)"
+    );
+
+    $stmt->bind_param(
+        "issss",
+        $user_id,
+        $waste_type,
+        $pickup_date,
+        $time_slot,
+        $notes
+    );
+
+    if($stmt->execute()){
+        $message = "Pickup request submitted successfully!";
+    }else{
+        $message = "Error : ".$stmt->error;
     }
-}
+
+    $stmt->close();
+}  
+
+$user_id = $_SESSION['user_id'];
+
+$stmt = $conn->prepare(
+    "SELECT * FROM pickup_requests
+     WHERE user_id = ?
+     ORDER BY created_at DESC"
+);
+
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+
+$pickup_requests = $stmt->get_result();
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Request Pickup - CleanCity</title>
-  <link rel="stylesheet" href="/waste-project/shared/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Pickup - CleanCity</title>
+
+    <link rel="stylesheet" href="/waste-project/shared/style.css">
+    <link rel="stylesheet" href="/waste-project/resident/resident-css/pickup.css">
 </head>
+
 <body>
+
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/waste-project/shared/navbar.php'; ?>
+
 <div class="page-content">
-  <div class="card">
-    <h2>Request a pickup</h2>
-    <p>Use this form to request a special pickup.</p>
-  </div>
-  <div class="card-white">
-    <?php if ($error): ?>
-      <p class="error-text"><?= htmlspecialchars($error) ?></p>
-    <?php endif; ?>
-    <?php if ($message): ?>
-      <p><?= htmlspecialchars($message) ?></p>
-    <?php endif; ?>
-    <form method="POST">
-      <label for="pickup_type">Pickup type</label>
-      <select id="pickup_type" name="pickup_type" required>
-        <option value="">Select one</option>
-        <option value="general">General waste</option>
-        <option value="recycling">Recycling</option>
-        <option value="bulk">Bulk waste</option>
-        <option value="hazardous">Hazardous waste</option>
-      </select>
 
-      <label for="preferred_date">Preferred date</label>
-      <input type="date" id="preferred_date" name="preferred_date" required>
+    <center><h1>Request Pickup</h1>
+    <?php if(!empty($message)){ ?>
+    <p style="color:green;font-weight:bold;">
+        <?php echo htmlspecialchars($message); ?>
+    </p>
+    <?php } ?>
+    <p class="page-description">
+        Need an additional waste collection? Submit your pickup request below.
+    </p></center>
 
-      <button type="submit" class="btn-primary">Submit request</button>
-    </form>
-  </div>
+    <div class="request-container">
+
+        <!-- Pickup Form -->
+        <div class="card-white form-card">
+
+            <h2>Pickup Request Form</h2>
+
+            <form  method="POST">
+
+                <label>Waste Type</label>
+
+                <select name="waste_type" required>
+                    <option value="">Select Waste Type</option>
+                    <option>General Waste</option>
+                    <option>Recyclables</option>
+                    <option>Garden Waste</option>
+                    <option>E-Waste</option>
+                </select>
+
+                <label>Preferred Pickup Date</label>
+
+                <input type="date" name="pickup_date" required>
+
+                <label>Preferred Time</label>
+
+                <select name="time_slot" required>
+                    <option value="">Select Time</option>
+                    <option>Morning (8 AM - 12 PM)</option>
+                    <option>Afternoon (12 PM - 4 PM)</option>
+                    <option>Evening (4 PM - 7 PM)</option>
+                </select>
+
+                <label>Additional Notes</label>
+
+                <textarea
+                    name="notes"
+                    rows="5"
+                    placeholder="Enter additional information (optional)"
+                ></textarea>
+
+                <button type="submit" class="btn-primary">
+                    Submit Request
+                </button>
+
+            </form>
+
+        </div>
+
+        <!-- Guidelines -->
+        <div class="card-white guide-card">
+
+            <h2>Request Guidelines</h2>
+
+            <ul>
+                <li>Requests must be made at least 24 hours in advance.</li>
+                <li>Only one pickup request is allowed per day.</li>
+                <li>Bulky waste collections may require additional approval.</li>
+                <li>Please provide accurate pickup details.</li>
+            </ul>
+
+        </div>
+
+    </div>
+
+    <!-- Previous Requests -->
+
+    <div class="card-white history-card">
+
+        <h2>My Pickup Requests</h2>
+
+        <table class="history-table">
+
+            <thead>
+
+                <tr>
+                    <th>ID</th>
+                    <th>Waste Type</th>
+                    <th>Pickup Date</th>
+                    <th>Time Slot</th>
+                    <th>Status</th>
+                    <th>Requested On</th>
+                </tr>
+
+            </thead>
+            <tbody>
+
+            <?php
+
+                while($row = $pickup_requests->fetch_assoc()){
+
+            ?>
+
+                <tr>
+
+                    <td><?php echo $row['id']; ?></td>
+
+                    <td><?php echo htmlspecialchars($row['waste_type']); ?></td>
+
+                    <td><?php echo date('d M Y',strtotime($row['pickup_date'])); ?></td>
+
+                    <td><?php echo htmlspecialchars($row['time_slot']); ?></td>
+
+                    <td>
+
+                <?php
+
+                    if($row['status']=="pending"){
+
+                        echo "<span class='pill-pending'>Pending</span>";
+
+                    }else{
+
+                        echo "<span class='pill-done'>".ucfirst($row['status'])."</span>";
+
+                    }
+
+                    ?>
+
+                    </td>
+
+                    <td><?php echo date('d M Y',strtotime($row['created_at'])); ?></td>
+
+                    </tr>
+
+                    <?php
+
+                    }
+
+                    $stmt->close();
+
+                    ?>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
 </div>
+
 </body>
 </html>
