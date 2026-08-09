@@ -6,12 +6,12 @@ requireAdmin();
 $active_page = 'home';
 
 /* ---------------------------------------------------------------------
- * FETCH ALL ADD_USERS RECORDS
+ * FETCH ALL REGISTERED USER ACCOUNTS
  * ------------------------------------------------------------------- */
 $user_records = [];
 $fetch_stmt = $conn->prepare(
-    "SELECT id, full_name, email, phone, address, preferred_days, entry_date, created_at
-     FROM add_users
+    "SELECT id, username, role, name, contact, address, created_at
+     FROM users
      ORDER BY created_at ASC"
 );
 
@@ -22,7 +22,6 @@ if ($fetch_stmt) {
 }
 ?>
 <!DOCTYPE html>
-<html>
 <head>
   <meta charset="UTF-8">
   <title>Admin Home - CleanCity</title>
@@ -71,12 +70,12 @@ if ($fetch_stmt) {
   <!-- User details table -->
   <div class="card-white user-records-card">
 
-    <h2>User Details</h2>
-    <p>Records submitted through the Add User Details form.</p>
+    <h2>Registered User Accounts</h2>
+    <p>Accounts created through the admin user management page.</p>
 
     <?php if (empty($user_records)): ?>
 
-        <p style="text-align:center; color:#555;">No user records yet.</p>
+        <p style="text-align:center; color:#555;">No user accounts yet.</p>
 
     <?php else: ?>
 
@@ -84,25 +83,23 @@ if ($fetch_stmt) {
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Full Name</th>
-                    <th>Email</th>
-                    <th>Phone</th>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Name</th>
+                    <th>Contact</th>
                     <th>Address</th>
-                    <th>Preferred Days</th>
-                    <th>Entry Date</th>
-                    <th>Added On</th>
+                    <th>Created On</th>
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ($user_records as $u): ?>
                     <tr>
                         <td><?php echo (int) $u['id']; ?></td>
-                        <td><?php echo htmlspecialchars($u['full_name']); ?></td>
-                        <td><?php echo htmlspecialchars($u['email']); ?></td>
-                        <td><?php echo htmlspecialchars($u['phone']); ?></td>
+                        <td><?php echo htmlspecialchars($u['username']); ?></td>
+                        <td><?php echo htmlspecialchars($u['role']); ?></td>
+                        <td><?php echo htmlspecialchars($u['name']); ?></td>
+                        <td><?php echo htmlspecialchars($u['contact']); ?></td>
                         <td><?php echo htmlspecialchars($u['address']); ?></td>
-                        <td><?php echo htmlspecialchars($u['preferred_days'] ?? '—'); ?></td>
-                        <td><?php echo date('d M Y', strtotime($u['entry_date'])); ?></td>
                         <td><?php echo date('d M Y', strtotime($u['created_at'])); ?></td>
                     </tr>
                 <?php endforeach; ?>

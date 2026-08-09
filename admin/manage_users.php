@@ -6,7 +6,7 @@ requireAdmin();
 $active_page = 'users';
 
 /* ---------------------------------------------------------------------
- * ADD USER — insert a new record into add_users
+ * ADD USER — insert a new login record into users
  * ------------------------------------------------------------------- */
 $add_user_message = '';
 $add_user_error   = '';
@@ -21,46 +21,51 @@ if (!empty($_SESSION['add_user_error'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_user_submit'])) {
-    $full_name  = trim($_POST['fullName'] ?? '');
-    $email      = trim($_POST['email'] ?? '');
-    $phone      = trim($_POST['mobile_phone'] ?? '');
-    $address    = trim($_POST['AddressMain'] ?? '');
-    $entry_date = trim($_POST['entryDate'] ?? '');
+    $username = trim($_POST['username'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $role     = trim($_POST['role'] ?? '');
+    $name     = trim($_POST['name'] ?? '');
+    $contact  = trim($_POST['contact'] ?? '');
+    $address  = trim($_POST['address'] ?? '');
 
-    $preferred_days = (isset($_POST['preferred_days']) && is_array($_POST['preferred_days']))
-        ? implode(', ', $_POST['preferred_days'])
-        : '';
+    $allowed_roles = ['admin', 'resident'];
 
-    if ($full_name === '' || $email === '' || $phone === '' || $address === '' || $entry_date === '') {
+    if ($username === '' || $password === '' || $role === '' || $name === '' || $contact === '' || $address === '') {
         $_SESSION['add_user_error'] = "Please fill in all required fields.";
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $_SESSION['add_user_error'] = "Please enter a valid email address.";
+    } elseif (!in_array($role, $allowed_roles, true)) {
+        $_SESSION['add_user_error'] = "Invalid role selected. Please choose admin or resident.";
     } else {
+        $password_hash = password_hash($password, PASSWORD_DEFAULT);
+
         $insert_stmt = $conn->prepare(
-            "INSERT INTO add_users (full_name, email, phone, address, preferred_days, entry_date)
+            "INSERT INTO users (username, password, role, name, address, contact)
              VALUES (?, ?, ?, ?, ?, ?)"
         );
 
         if ($insert_stmt) {
             $insert_stmt->bind_param(
                 "ssssss",
-                $full_name,
-                $email,
-                $phone,
+                $username,
+                $password_hash,
+                $role,
+                $name,
                 $address,
-                $preferred_days,
-                $entry_date
+                $contact
             );
 
             if ($insert_stmt->execute()) {
-                $_SESSION['add_user_message'] = "User details added successfully.";
+                $_SESSION['add_user_message'] = "User account created successfully.";
             } else {
-                $_SESSION['add_user_error'] = "Error saving user details. Please try again.";
+                if ($insert_stmt->errno === 1062) {
+                    $_SESSION['add_user_error'] = "That username is already taken. Please choose a different username.";
+                } else {
+                    $_SESSION['add_user_error'] = "Error creating user account. Please try again.";
+                }
             }
 
             $insert_stmt->close();
         } else {
-            $_SESSION['add_user_error'] = "Unable to save user details right now.";
+            $_SESSION['add_user_error'] = "Unable to create user account right now.";
         }
     }
 
@@ -70,35 +75,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_user_submit'])) {
 }
 
 /* ---------------------------------------------------------------------
- * REGISTERED USERS — fetch all records from add_users
+ * REGISTERED USERS — fetch all login accounts from users
  * ------------------------------------------------------------------- */
 $users = [];
-$users_result = $conn->query("SELECT * FROM add_users ORDER BY created_at DESC");
+$users_result = $conn->query("SELECT id, username, role, name, address, contact, created_at FROM users ORDER BY created_at DESC");
 if ($users_result) {
     $users = $users_result->fetch_all(MYSQLI_ASSOC);
 }
 
 /* ---------------------------------------------------------------------
- * SEARCH USERS — by full name, email, or mobile number
- * Queries the real `add_users` table. Column choice is restricted to
+ * SEARCH USERS — by name, username, or contact
+ * Queries the real `users` table. Column choice is restricted to
  * a whitelist so the field name is never taken directly from input.
- * (No username column exists here — this table stores resident
- * detail records, not login credentials — so search uses Full Name
- * in its place.)
  * ------------------------------------------------------------------- */
 $search_field_columns = [
-    'full_name' => 'full_name',
-    'email'     => 'email',
-    'phone'     => 'phone',
+    'name'     => 'name',
+    'username' => 'username',
+    'contact'  => 'contact',
 ];
 $search_field_labels = [
-    'full_name' => 'Full Name',
-    'email'     => 'Email',
-    'phone'     => 'Mobile Number',
+    'name'     => 'Name',
+    'username' => 'Username',
+    'contact'  => 'Contact',
 ];
 
 $search_query     = '';
-$search_field     = 'full_name';
+$search_field     = 'name';
 $search_results   = [];
 $search_error     = '';
 $search_performed = false;
@@ -106,10 +108,10 @@ $search_performed = false;
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
     $search_performed = true;
     $search_query = trim($_GET['search_query'] ?? '');
-    $search_field = $_GET['search_field'] ?? 'full_name';
+    $search_field = $_GET['search_field'] ?? 'name';
 
     if (!array_key_exists($search_field, $search_field_columns)) {
-        $search_field = 'full_name';
+        $search_field = 'name';
     }
 
     if ($search_query === '') {
@@ -119,8 +121,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
         $like_term = '%' . $search_query . '%';
 
         $search_stmt = $conn->prepare(
-            "SELECT full_name, email, phone, address, preferred_days, entry_date, created_at
-             FROM add_users
+            "SELECT id, username, role, name, address, contact, created_at
+             FROM users
              WHERE {$column} LIKE ?
              ORDER BY created_at DESC"
         );
@@ -156,8 +158,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
   <!-- Form Section -->
   <div class="form-card-wrapper">
     <div class="form-card">
-        <h1 class="form-title">Add User Details</h1>
-        <p class="form-subtitle">Fill in the details below</p>
+        <h1 class="form-title">Add User Account</h1>
+        <p class="form-subtitle">Create a new resident or admin login account.</p>
 
         <?php if (!empty($add_user_message)): ?>
             <div class="alert success-alert"><?php echo htmlspecialchars($add_user_message); ?></div>
@@ -169,65 +171,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
         <form class="waste-form" action="" method="POST">
 
             <div class="form-group">
-                <label for="fullName">Full Name</label>
-                <input type="text" id="fullName" name="fullName" placeholder="e.g. Lahiru" required>
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" placeholder="e.g. janedoe" required>
             </div>
 
             <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" placeholder="e.g. lahiruacb@gmail.com" required>
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter password" required>
             </div>
 
             <div class="form-group">
-                <label for="mobilePhone">Mobile Phone</label>
-                <input type="tel" id="mobilePhone" name="mobile_phone" placeholder="e.g. 077 123 4567" pattern="[0-9+\-\s]{7,15}" required>
+                <label for="role">Role</label>
+                <select id="role" name="role" required>
+                    <option value="resident">Resident</option>
+                    <option value="admin">Admin</option>
+                </select>
             </div>
 
             <div class="form-group">
-                <label for="AddressMain">Address</label>
-                <input type="text" id="AddressMain" name="AddressMain" placeholder="e.g. 45/B, Galle Road" required>
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" placeholder="e.g. Lahiru" required>
             </div>
-
-            <fieldset class="form-group address-group">
-                <legend>Preferred Days</legend>
-                <div class="days-row">
-                    <label class="day-option">
-                        <input type="checkbox" name="preferred_days[]" value="Sunday">
-                        <span>Sun</span>
-                    </label>
-                    <label class="day-option">
-                        <input type="checkbox" name="preferred_days[]" value="Monday">
-                        <span>Mon</span>
-                    </label>
-                    <label class="day-option">
-                        <input type="checkbox" name="preferred_days[]" value="Tuesday">
-                        <span>Tue</span>
-                    </label>
-                    <label class="day-option">
-                        <input type="checkbox" name="preferred_days[]" value="Wednesday">
-                        <span>Wed</span>
-                    </label>
-                    <label class="day-option">
-                        <input type="checkbox" name="preferred_days[]" value="Thursday">
-                        <span>Thu</span>
-                    </label>
-                    <label class="day-option">
-                        <input type="checkbox" name="preferred_days[]" value="Friday">
-                        <span>Fri</span>
-                    </label>
-                    <label class="day-option">
-                        <input type="checkbox" name="preferred_days[]" value="Saturday">
-                        <span>Sat</span>
-                    </label>
-                </div>
-            </fieldset>
 
             <div class="form-group">
-                <label for="entryDate">Date</label>
-                <input type="date" id="entryDate" name="entryDate" required>
+                <label for="contact">Contact Phone</label>
+                <input type="tel" id="contact" name="contact" placeholder="e.g. 077 123 4567" pattern="[0-9+\-\s]{7,15}" required>
             </div>
 
-            <button type="submit" name="add_user_submit" value="1" class="btn-primary full">Add Entry</button>
+            <div class="form-group">
+                <label for="address">Address</label>
+                <input type="text" id="address" name="address" placeholder="e.g. 45/B, Galle Road" required>
+            </div>
+
+            <button type="submit" name="add_user_submit" value="1" class="btn-primary full">Create Account</button>
 
         </form>
     </div>
@@ -237,7 +213,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
   <div class="form-card-wrapper">
     <div class="form-card">
         <h1 class="form-title">Search Users</h1>
-        <p class="form-subtitle">Find a user by full name, email, or mobile number</p>
+        <p class="form-subtitle">Find a user by name, username, or contact number</p>
 
         <?php if (!empty($search_error)): ?>
             <div class="alert error-alert"><?php echo htmlspecialchars($search_error); ?></div>
@@ -273,7 +249,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
   <div class="user-schedule-section">
 
       <h2>Registered Users</h2>
-      <p>View and manage all registered user records below.</p>
+      <p>View and manage all registered login accounts below.</p>
 
       <?php if (empty($users)): ?>
 
@@ -284,24 +260,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
           <table class="schedule-table">
               <thead>
                   <tr>
-                      <th>Full Name</th>
-                      <th>Email</th>
-                      <th>Telephone No</th>
+                      <th>Name</th>
+                      <th>Username</th>
+                      <th>Role</th>
+                      <th>Contact</th>
                       <th>Address</th>
-                      <th>Preferred Days</th>
-                      <th>Entry Date</th>
                       <th>Created Date</th>
                   </tr>
               </thead>
               <tbody>
                   <?php foreach ($users as $user): ?>
                       <tr>
-                          <td><?php echo htmlspecialchars($user['full_name']); ?></td>
-                          <td><?php echo htmlspecialchars($user['email']); ?></td>
-                          <td><?php echo htmlspecialchars($user['phone']); ?></td>
+                          <td><?php echo htmlspecialchars($user['name']); ?></td>
+                          <td><?php echo htmlspecialchars($user['username']); ?></td>
+                          <td><?php echo htmlspecialchars($user['role']); ?></td>
+                          <td><?php echo htmlspecialchars($user['contact']); ?></td>
                           <td><?php echo htmlspecialchars($user['address']); ?></td>
-                          <td><?php echo htmlspecialchars($user['preferred_days']); ?></td>
-                          <td><?php echo date('d M Y', strtotime($user['entry_date'])); ?></td>
                           <td><?php echo date('d M Y', strtotime($user['created_at'])); ?></td>
                       </tr>
                   <?php endforeach; ?>
@@ -334,24 +308,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
           <table class="schedule-table">
               <thead>
                   <tr>
-                      <th>Full Name</th>
-                      <th>Email</th>
-                      <th>Telephone No</th>
+                      <th>Name</th>
+                      <th>Username</th>
+                      <th>Role</th>
+                      <th>Contact</th>
                       <th>Address</th>
-                      <th>Preferred Days</th>
-                      <th>Entry Date</th>
                       <th>Created Date</th>
                   </tr>
               </thead>
               <tbody>
                   <?php foreach ($search_results as $user): ?>
                       <tr>
-                          <td><?php echo htmlspecialchars($user['full_name']); ?></td>
-                          <td><?php echo htmlspecialchars($user['email']); ?></td>
-                          <td><?php echo htmlspecialchars($user['phone']); ?></td>
+                          <td><?php echo htmlspecialchars($user['name']); ?></td>
+                          <td><?php echo htmlspecialchars($user['username']); ?></td>
+                          <td><?php echo htmlspecialchars($user['role']); ?></td>
+                          <td><?php echo htmlspecialchars($user['contact']); ?></td>
                           <td><?php echo htmlspecialchars($user['address']); ?></td>
-                          <td><?php echo htmlspecialchars($user['preferred_days']); ?></td>
-                          <td><?php echo date('d M Y', strtotime($user['entry_date'])); ?></td>
                           <td><?php echo date('d M Y', strtotime($user['created_at'])); ?></td>
                       </tr>
                   <?php endforeach; ?>

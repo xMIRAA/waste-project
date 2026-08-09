@@ -7,6 +7,9 @@ CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     role ENUM('admin', 'resident') NOT NULL DEFAULT 'resident',
+    name VARCHAR(100) NOT NULL,
+    address VARCHAR(255) NOT NULL,
+    contact VARCHAR(20) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -41,22 +44,6 @@ CREATE TABLE IF NOT EXISTS pickup_schedule (
     pickup_date DATE NOT NULL,
     waste_type VARCHAR(50) NOT NULL,
     area VARCHAR(100) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Table to store user detail records entered via the admin
--- "Add User Details" form on manage_users.php. Address is collected
--- as a single free-text field (the form's separate street/home
--- number/city/sub-city inputs were dropped as redundant), and
--- preferred pickup days are stored as a comma-separated list.
-CREATE TABLE IF NOT EXISTS add_users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    full_name VARCHAR(100) NOT NULL,
-    email VARCHAR(150) NOT NULL,
-    phone VARCHAR(20) NOT NULL,
-    address VARCHAR(255) NOT NULL,
-    preferred_days VARCHAR(100) DEFAULT NULL,
-    entry_date DATE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

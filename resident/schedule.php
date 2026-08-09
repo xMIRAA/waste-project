@@ -6,12 +6,16 @@ $active_page = 'schedule';
 
 /* Get pickup schedule */
 
+$user_id = $_SESSION['user_id'];
+
 $stmt = $conn->prepare(
-    "SELECT *
-     FROM pickup_schedule
+    "SELECT id, waste_type, pickup_date, time_slot, states, created_at
+     FROM pickup_requests
+     WHERE user_id = ?
      ORDER BY pickup_date ASC"
 );
 
+$stmt->bind_param("i", $user_id);
 $stmt->execute();
 
 $schedules = $stmt->get_result();
@@ -38,7 +42,7 @@ $schedules = $stmt->get_result();
         <h2>Weekly Pickup Schedule</h2>
 
         <p>
-            Find your designated waste collection schedule below.
+            View your submitted pickup requests below.
         </p>
 
         <table class="schedule-table">
@@ -48,7 +52,8 @@ $schedules = $stmt->get_result();
                 <tr>
                     <th>Date</th>
                     <th>Waste Type</th>
-                    <th>Area / Zone</th>
+                    <th>Time Slot</th>
+                    <th>Status</th>
                 </tr>
 
             </thead>
@@ -74,7 +79,11 @@ $schedules = $stmt->get_result();
                     </td>
 
                     <td>
-                        <?php echo htmlspecialchars($row['area']); ?>
+                        <?php echo htmlspecialchars($row['time_slot']); ?>
+                    </td>
+
+                    <td>
+                        <?php echo htmlspecialchars(ucfirst($row['states'])); ?>
                     </td>
 
                 </tr>
@@ -88,8 +97,8 @@ $schedules = $stmt->get_result();
             ?>
 
                 <tr>
-                    <td colspan="3" style="text-align:center;">
-                        No pickup schedule available.
+                    <td colspan="4" style="text-align:center;">
+                        No pickup requests submitted yet.
                     </td>
                 </tr>
 
