@@ -1,0 +1,14 @@
+﻿File: admin/manage_schedule.php and resident/resident_home.php
+Severity: Major
+
+Description:
+The collection schedule flows are incomplete and potentially leaking information: there are no admin update/delete handlers for `pickup_schedule`, and the resident-facing `resident_home.php` shows the next schedule without filtering by user area. The `users` table also lacks an `area`/`zone` field so there's no way to map a resident to a schedule area.
+
+Reproduction/Impact:
+- Residents see upcoming schedules for other areas, leaking operational information and causing confusion.
+- Admins cannot edit or remove schedule entries; fixing this may encourage ad-hoc insecure code.
+
+Suggested fix:
+- Add `area` or `zone` mapping to user profiles (DB migration), require area when creating users or provide admin assignment.
+- Add admin UPDATE/DELETE handlers with prepared statements and existence checks.
+- Filter resident schedule queries by the resident's assigned area.
