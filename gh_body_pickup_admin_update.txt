@@ -1,0 +1,9 @@
+﻿File: admin/pickup_request.php
+Severity: Minor
+
+Description:
+Admin updates `pickup_requests.states` using a prepared statement, but the code does not check whether the UPDATE affected any rows or confirm that the record exists beforehand. If an admin posts a non-existent id, the action will silently do nothing; if an attacker could post to this endpoint (unlikely due to requireAdmin), they could attempt to set arbitrary ids.
+
+Suggested fix:
+- Check `$update_stmt->affected_rows` and show an error if 0.
+- Optionally verify the record exists before updating and log admin actions.
