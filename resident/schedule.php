@@ -1,11 +1,21 @@
 <?php
-require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/auth/auth_guard.php';
-require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/database/db.php';
+// ------------------------------------------------------
+// schedule.php
+// Shows the logged-in resident only their submitted pickup
+// requests and their current states by date.
+// ------------------------------------------------------
+
+require_once __DIR__ . '/../config.php';
+
+// Protect this page so only logged-in residents can access their own collection history.
+require_once app_path('auth/auth_guard.php');
+// Load the database connection for lookup queries on pickup requests.
+require_once app_path('database/db.php');
 
 $active_page = 'schedule';
 
 /* Get pickup schedule */
-
+// Fetch the current resident's pickup requests so they can track their own schedule history.
 $user_id = $_SESSION['user_id'];
 
 $stmt = $conn->prepare(
@@ -27,13 +37,13 @@ $schedules = $stmt->get_result();
     <meta charset="UTF-8">
     <title>Schedule - CleanCity</title>
 
-    <link rel="stylesheet" href="/waste-project/shared/style.css">
-    <link rel="stylesheet" href="/waste-project/resident/resident-css/schedule.css">
+    <link rel="stylesheet" href="<?= app_url('shared/style.css') ?>">
+    <link rel="stylesheet" href="<?= app_url('resident/resident-css/schedule.css') ?>">
 </head>
 
 <body>
 
-<?php include $_SERVER['DOCUMENT_ROOT'] . '/waste-project/shared/navbar.php'; ?>
+<?php include app_path('shared/navbar.php'); ?>
 
 <div class="page-content">
 

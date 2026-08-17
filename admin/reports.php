@@ -1,7 +1,18 @@
 <?php
-require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/auth/auth_guard.php';
-require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/database/db.php';
+// ------------------------------------------------------
+// reports.php
+// Shows resident complaints and lets the admin update each
+// complaint state from pending to done or declined.
+// ------------------------------------------------------
 
+require_once __DIR__ . '/../config.php';
+
+// Protect this page so only logged-in admins can manage complaints.
+require_once app_path('auth/auth_guard.php');
+// Load the shared database connection used for complaint updates and reads.
+require_once app_path('database/db.php');
+
+// Only admins are allowed to view or change complaint statuses.
 requireAdmin();
 $active_page = 'reports';
 
@@ -22,12 +33,16 @@ $allowed_statuses = ['pending', 'done', 'declined'];
 /* ---------------------------------------------------------------------
  * UPDATE STATUS — pending / done / declined
  * ------------------------------------------------------------------- */
+// If the admin changes a complaint status, validate the complaint ID and the new status before updating it.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
     $complaint_id = (int) ($_POST['complaint_id'] ?? 0);
     $new_status   = $_POST['status'] ?? '';
 
+    // Reject invalid complaint IDs or unknown statuses before altering the database.
     if ($complaint_id > 0 && in_array($new_status, $allowed_statuses, true)) {
+        // Update the complaint row to the selected status.
         $update_stmt = $conn->prepare("UPDATE complaints SET states = ? WHERE id = ?");
+        // Bind the status and complaint ID securely with prepared parameters.
         $update_stmt->bind_param("si", $new_status, $complaint_id);
 
         if ($update_stmt->execute()) {
@@ -41,14 +56,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
         $_SESSION['status_error'] = "Invalid update request.";
     }
 
-    // Post/Redirect/Get so refreshing the page doesn't resubmit the update.
+    // Redirect back to this page after the POST so a refresh does not resubmit the same update.
     header("Location: " . $_SERVER['PHP_SELF']);
+    // Stop immediately so no extra code runs after the redirect.
     exit;
 }
 
 /* ---------------------------------------------------------------------
  * FETCH ALL COMPLAINTS — joined with the submitting user
  * ------------------------------------------------------------------- */
+// Pull each complaint alongside the resident username so the admin can see who submitted it.
 $complaints = [];
 $fetch_stmt = $conn->prepare(
     "SELECT c.id, c.complaint_type, c.complaint_subject, c.complaint_text, c.states, c.created_at,
@@ -69,11 +86,11 @@ if ($fetch_stmt) {
 <head>
   <meta charset="UTF-8">
   <title>Reports - CleanCity</title>
-  <link rel="stylesheet" href="/waste-project/shared/style.css">
-  <link rel="stylesheet" href="/waste-project/admin/css/reports.css">
+  <link rel="stylesheet" href="<?= app_url('shared/style.css') ?>">
+  <link rel="stylesheet" href="<?= app_url('admin/css/reports.css') ?>">
 </head>
 <body>
-<?php include $_SERVER['DOCUMENT_ROOT'] . '/waste-project/shared/navbar.php'; ?>
+<?php include app_path('shared/navbar.php'); ?>
 <div class="page-content">
 
   <div class="card-white reports-card">

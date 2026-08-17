@@ -1,8 +1,0 @@
-﻿File: resident/complaints.php
-Severity: Minor
-
-Description:
-Complaint submissions are inserted via a prepared statement, but the server-side code does not validate `complaint_type` against a whitelist. The form contains a fixed set of options, but a crafted POST could submit arbitrary values leading to inconsistent data and potential issues for reporting/filters.
-
-Suggested fix:
-- Add an `$allowed_types` array and `in_array()` validation before insert.

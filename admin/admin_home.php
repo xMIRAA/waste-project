@@ -1,13 +1,25 @@
 <?php
-require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/auth/auth_guard.php';
-require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/database/db.php';
+// ------------------------------------------------------
+// admin_home.php
+// Shows the admin dashboard and lists every registered user
+// so the administrator can monitor accounts from one page.
+// ------------------------------------------------------
 
+require_once __DIR__ . '/../config.php';
+
+// Protect this page so only logged-in admins can access it.
+require_once app_path('auth/auth_guard.php');
+// Load the shared database connection for user queries.
+require_once app_path('database/db.php');
+
+// Restrict access to admin users only.
 requireAdmin();
 $active_page = 'home';
 
 /* ---------------------------------------------------------------------
  * FETCH ALL REGISTERED USER ACCOUNTS
  * ------------------------------------------------------------------- */
+// Pull all user accounts so the dashboard can display the full account list.
 $user_records = [];
 $fetch_stmt = $conn->prepare(
     "SELECT id, username, role, name, contact, address, created_at
@@ -25,11 +37,11 @@ if ($fetch_stmt) {
 <head>
   <meta charset="UTF-8">
   <title>Admin Home - CleanCity</title>
-  <link rel="stylesheet" href="/waste-project/shared/style.css">
-  <link rel="stylesheet" href="/waste-project/admin/css/admin.css">
+  <link rel="stylesheet" href="<?= app_url('shared/style.css') ?>">
+  <link rel="stylesheet" href="<?= app_url('admin/css/admin.css') ?>">
 </head>
 <body>
-<?php include $_SERVER['DOCUMENT_ROOT'] . '/waste-project/shared/navbar.php'; ?>
+<?php include app_path('shared/navbar.php'); ?>
 <div class="page-content">
 
   <div class="card">
@@ -40,26 +52,26 @@ if ($fetch_stmt) {
   <!-- Quick links -->
   <div class="admin-links">
 
-    <a href="/waste-project/admin/manage_users.php" class="admin-link-card">
+    <a href="<?= app_url('admin/manage_users.php') ?>" class="admin-link-card">
       <div class="admin-link-icon">👤</div>
       <div class="admin-link-title">Users</div>
       <div class="admin-link-desc">View and manage resident accounts and details.</div>
     </a>
 
-    <a href="/waste-project/admin/manage_schedule.php" class="admin-link-card">
+    <a href="<?= app_url('admin/manage_schedule.php') ?>" class="admin-link-card">
       <div class="admin-link-icon">📅</div>
       <div class="admin-link-title">Schedule</div>
       <div class="admin-link-desc">View and manage upcoming pickup schedules.</div>
     </a>
 
-    <a href="/waste-project/admin/pickup_request.php" class="admin-link-card">
+    <a href="<?= app_url('admin/pickup_request.php') ?>" class="admin-link-card">
       <div class="admin-link-icon">📬</div>
       <div class="admin-link-title">Pickup Requests</div>
       <div class="admin-link-desc">Review and manage pickup requests.</div>
     </a> 
 
 
-    <a href="/waste-project/admin/reports.php" class="admin-link-card">
+    <a href="<?= app_url('admin/reports.php') ?>" class="admin-link-card">
       <div class="admin-link-icon">📋</div>
       <div class="admin-link-title">Reports</div>
       <div class="admin-link-desc">Review and update resident complaints.</div>

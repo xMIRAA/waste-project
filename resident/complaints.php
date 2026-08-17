@@ -1,13 +1,23 @@
 <?php
-require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/auth/auth_guard.php';
-require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/database/db.php';
+// ------------------------------------------------------
+// complaints.php
+// Lets a resident submit a complaint and view only their
+// own complaint history with its current status.
+// ------------------------------------------------------
+
+require_once __DIR__ . '/../config.php';
+
+// Protect this page so only logged-in residents can submit issues.
+require_once app_path('auth/auth_guard.php');
+// Load the database connection used for complaint inserts and reads.
+require_once app_path('database/db.php');
 
 $active_page = 'complaints';
 
 $message = '';  
 
 /* Submit Complaint */
-
+// If the resident submits a complaint, validate and insert the record tied to their user_id.
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $user_id = $_SESSION['user_id'];
@@ -16,6 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $subject = trim($_POST['subject']);
     $description = trim($_POST['description']);
 
+    // Insert the complaint with the resident's user id so admins can track who reported it.
     $stmt = $conn->prepare(
     "INSERT INTO complaints
     (user_id, complaint_type, complaint_subject, complaint_text)
@@ -41,6 +52,7 @@ $stmt->close();
 
  $user_id = $_SESSION['user_id'];
 
+// Read only the logged-in resident's complaint rows so they cannot see other residents' issues.
 $stmt = $conn->prepare(
     "SELECT *
      FROM complaints
@@ -60,13 +72,13 @@ $complaints = $stmt->get_result();
     <meta charset="UTF-8">
     <title>Complaints - CleanCity</title>
 
-    <link rel="stylesheet" href="/waste-project/shared/style.css">
-    <link rel="stylesheet" href="/waste-project/resident/resident-css/complaints.css">
+    <link rel="stylesheet" href="<?= app_url('shared/style.css') ?>">
+    <link rel="stylesheet" href="<?= app_url('resident/resident-css/complaints.css') ?>">
 </head>
 
 <body>
 
-<?php include $_SERVER['DOCUMENT_ROOT'] . '/waste-project/shared/navbar.php'; ?>
+<?php include app_path('shared/navbar.php'); ?>
 
 <div class="page-content">
 

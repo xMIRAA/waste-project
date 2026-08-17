@@ -1,7 +1,18 @@
 <?php
-require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/auth/auth_guard.php';
-require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/database/db.php';
+// ------------------------------------------------------
+// manage_schedule.php
+// Lets an admin add weekly pickup dates and display the
+// current schedule for residents and operations teams.
+// ------------------------------------------------------
 
+require_once __DIR__ . '/../config.php';
+
+// Protect this page so only logged-in admins can access it.
+require_once app_path('auth/auth_guard.php');
+// Load the database connection used for schedule queries and inserts.
+require_once app_path('database/db.php');
+
+// Only admins are allowed to create or edit the collection schedule.
 requireAdmin();
 $active_page = 'schedule';
 
@@ -9,13 +20,17 @@ $success_message = '';
 $error_message = '';
 
 /* Handle form submission for adding a new schedule */
+// If the admin submits a new schedule entry, validate the fields and insert it.
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pickup_date = trim($_POST['pickup_date'] ?? '');
     $waste_type  = trim($_POST['waste_type'] ?? '');
     $area        = trim($_POST['area'] ?? '');
 
+    // Require each schedule field before inserting a new row.
     if (!empty($pickup_date) && !empty($waste_type) && !empty($area)) {
+        // Insert the schedule row with the selected date, waste type, and service area.
         $stmt = $conn->prepare("INSERT INTO pickup_schedule (pickup_date, waste_type, area) VALUES (?, ?, ?)");
+        // Use a prepared statement so the form values are bound safely instead of being placed directly into SQL.
         $stmt->bind_param("sss", $pickup_date, $waste_type, $area);
 
         if ($stmt->execute()) {
@@ -30,6 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 /* Fetch existing schedules to list in the table */
+// Read the saved schedule rows so the current week and future dates can be displayed.
 $stmt = $conn->prepare("SELECT * FROM pickup_schedule ORDER BY pickup_date ASC");
 $stmt->execute();
 $schedules = $stmt->get_result();
@@ -39,12 +55,12 @@ $schedules = $stmt->get_result();
 <head>
   <meta charset="UTF-8">
   <title>Manage Schedule - CleanCity</title>
-  <link rel="stylesheet" href="/waste-project/shared/style.css">
-  <link rel="stylesheet" href="/waste-project/admin/css/manage-schedule.css">
+  <link rel="stylesheet" href="<?= app_url('shared/style.css') ?>">
+  <link rel="stylesheet" href="<?= app_url('admin/css/manage-schedule.css') ?>">
 </head>
 <body>
 
-<?php include $_SERVER['DOCUMENT_ROOT'] . '/waste-project/shared/navbar.php'; ?>
+<?php include app_path('shared/navbar.php'); ?>
 
 <div class="page-content">
 

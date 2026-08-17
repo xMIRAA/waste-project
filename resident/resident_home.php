@@ -1,12 +1,22 @@
 <?php
-require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/auth/auth_guard.php';
-require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/database/db.php';
+// ------------------------------------------------------
+// resident_home.php
+// Shows the resident dashboard with the next scheduled pickup
+// and a short summary of key collection guidance.
+// ------------------------------------------------------
+
+require_once __DIR__ . '/../config.php';
+
+// Protect the page so only logged-in residents can see their dashboard.
+require_once app_path('auth/auth_guard.php');
+// Load the database connection used for the next-pickup query.
+require_once app_path('database/db.php');
 
 $active_page = 'home';
 $username = isset($_SESSION['username']) ? $_SESSION['username'] : 'Resident';
 
 /* Get Next Pickup Schedule */
-
+// Find the next future collection date so the resident can see the upcoming pickup quickly.
 $stmt = $conn->prepare(
     "SELECT *
      FROM pickup_schedule
@@ -27,12 +37,12 @@ $stmt->close();
     <meta charset="UTF-8">
     <title>Resident Home - CleanCity</title>
 
-    <link rel="stylesheet" href="/waste-project/shared/style.css">
-    <link rel="stylesheet" href="/waste-project/resident/resident-css/resident_home.css">
+    <link rel="stylesheet" href="<?= app_url('shared/style.css') ?>">
+    <link rel="stylesheet" href="<?= app_url('resident/resident-css/resident_home.css') ?>">
 </head>
 <body>
 
-<?php include $_SERVER['DOCUMENT_ROOT'] . '/waste-project/shared/navbar.php'; ?>
+<?php include app_path('shared/navbar.php'); ?>
 
 <div class="page-content">
 

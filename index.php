@@ -1,8 +1,20 @@
 <?php
+// ------------------------------------------------------
+// index.php
+// Acts as the landing page: if a user is already logged in,
+// they are redirected to the home screen; otherwise they see
+// the public welcome page and login prompt.
+// ------------------------------------------------------
+
+require_once __DIR__ . '/config.php';
+
+// Start the session so the page can check whether a user is already logged in.
 session_start();
 
+// If a logged-in user is already in session, send them to the dashboard instead of the landing page.
 if (isset($_SESSION['user_id'])) {
-    header('Location: /waste-project/shared/home.php');
+    header('Location: ' . app_url('shared/home.php'));
+    // Stop immediately so the landing page does not render after redirect.
     exit;
 }
 ?>
@@ -12,13 +24,13 @@ if (isset($_SESSION['user_id'])) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CleanCity Waste Collection</title>
-  <link rel="stylesheet" href="/waste-project/shared/style.css">
+  <link rel="stylesheet" href="<?= app_url('shared/style.css') ?>">
 </head>
 <body>
   <div class="landing-page">
     <header class="landing-header">
       <div class="brand-block">CleanCity</div>
-      <a href="/waste-project/auth/login.php" class="btn-primary">Login</a>
+      <a href="<?= app_url('auth/login.php') ?>" class="btn-primary">Login</a>
     </header>
 
     <main class="landing-hero">
@@ -27,7 +39,7 @@ if (isset($_SESSION['user_id'])) {
         <h1>Keep your community clean with a smarter waste collection experience.</h1>
         <p>Residents can request pickups and report issues easily, while administrators manage schedules, accounts, and service operations from a simple and secure dashboard.</p>
         <div class="hero-actions">
-          <a href="/waste-project/auth/login.php" class="btn-primary">Login</a>
+          <a href="<?= app_url('auth/login.php') ?>" class="btn-primary">Login</a>
           <a href="#features" class="btn-secondary">Explore features</a>
         </div>
       </section>

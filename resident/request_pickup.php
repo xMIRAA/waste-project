@@ -1,6 +1,16 @@
 <?php
-require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/auth/auth_guard.php';
-require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/database/db.php';
+// ------------------------------------------------------
+// request_pickup.php
+// Lets a resident submit a new pickup request and view their
+// own past requests and current status.
+// ------------------------------------------------------
+
+require_once __DIR__ . '/../config.php';
+
+// Protect this page so a resident must be logged in before submitting a request.
+require_once app_path('auth/auth_guard.php');
+// Load the database connection used for pickup insert and lookup queries.
+require_once app_path('database/db.php');
 
 $active_page = 'request_pickup';
 
@@ -8,16 +18,19 @@ $message   = '';
 $error     = '';
 
 /* Whitelisted option values — must match the <select> options below */
+// Restrict valid waste and time options to a safe allowlist so unexpected values are rejected.
 $allowed_waste_types = ['General Waste', 'Recyclables', 'Garden Waste', 'E-Waste'];
 $allowed_time_slots  = ['Morning (8 AM - 12 PM)', 'Afternoon (12 PM - 4 PM)', 'Evening (4 PM - 7 PM)'];
 
 /* Pick up any flash message left by a previous redirect (PRG pattern) */
+// Read the success message from the previous redirect so it is shown once after submit.
 if (!empty($_SESSION['pickup_message'])) {
     $message = $_SESSION['pickup_message'];
     unset($_SESSION['pickup_message']);
 }
 
 /* Submit Pickup Request */
+// If the resident submits the form, validate the request before inserting it.
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $user_id     = $_SESSION['user_id'];
@@ -45,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($date_obj < $min_date) {
                 $error = "Pickup requests must be made at least 24 hours in advance.";
             } else {
-                // Enforce "one pickup request per day" per user
+                // Enforce "one pickup request per day" per user so residents cannot flood the system with duplicate requests.
                 $check = $conn->prepare(
                     "SELECT COUNT(*) AS cnt FROM pickup_requests
                      WHERE user_id = ? AND pickup_date = ?"
@@ -58,6 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($count_row['cnt'] > 0) {
                     $error = "You already have a pickup request for that date. Only one request per day is allowed.";
                 } else {
+                    // Insert the resident's request with a record tied to their own user_id only.
                     $insert_stmt = $conn->prepare(
                         "INSERT INTO pickup_requests
                         (user_id, waste_type, pickup_date, time_slot, notes)
@@ -81,9 +95,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     $insert_stmt->close();
 
-                    // Redirect (Post/Redirect/Get) so refreshing the page
-                    // doesn't resubmit the form.
+                    // Redirect (Post/Redirect/Get) so refreshing the page does not resubmit the form.
                     header("Location: " . $_SERVER['PHP_SELF']);
+                    // Stop immediately so no extra code runs after the redirect.
                     exit;
                 }
             }
@@ -91,6 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// Only show rows linked to the current resident's user_id so they can see their own requests.
 $user_id = $_SESSION['user_id'];
 
 $select_stmt = $conn->prepare(
@@ -111,13 +126,13 @@ $pickup_requests = $select_stmt->get_result();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Request Pickup - CleanCity</title>
 
-    <link rel="stylesheet" href="/waste-project/shared/style.css">
-    <link rel="stylesheet" href="/waste-project/resident/resident-css/pickup.css">
+    <link rel="stylesheet" href="<?= app_url('shared/style.css') ?>">
+    <link rel="stylesheet" href="<?= app_url('resident/resident-css/pickup.css') ?>">
 </head>
 
 <body>
 
-<?php include $_SERVER['DOCUMENT_ROOT'] . '/waste-project/shared/navbar.php'; ?>
+<?php include app_path('shared/navbar.php'); ?>
 
 <div class="page-content">
 

@@ -1,15 +1,24 @@
 <?php
-require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/auth/auth_guard.php';
+// ------------------------------------------------------
+// help.php
+// Shows quick support guidance so users can understand how
+// to navigate and use the waste collection system.
+// ------------------------------------------------------
+
+require_once __DIR__ . '/../config.php';
+
+// Protect the page so only logged-in users can access help content.
+require_once app_path('auth/auth_guard.php');
 ?>
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <title>Help - CleanCity</title>
-  <link rel="stylesheet" href="/waste-project/shared/style.css">
+  <link rel="stylesheet" href="<?= app_url('shared/style.css') ?>">
 </head>
 <body>
-<?php include $_SERVER['DOCUMENT_ROOT'] . '/waste-project/shared/navbar.php'; ?>
+<?php include app_path('shared/navbar.php'); ?>
   <div class="page-content">
     <header class="card-white" style="margin-bottom: 24px;">
       <h1>Help Center</h1>

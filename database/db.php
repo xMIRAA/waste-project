@@ -1,19 +1,29 @@
 <?php
-// 1. Connection credentials
-$host = "localhost";
-$user = "root";      // Default username for XAMPP
-$pass = "";          // Default password for XAMPP (blank)
-$dbname = "waste_db"; // Name of database created by schema.sql
+// ------------------------------------------------------
+// database/db.php
+// Creates the shared database connection for the waste
+// management system so all pages can run SQL queries.
+// ------------------------------------------------------
 
-// 2. Initialize the connection using PHP's native mysqli extension
+// Store the local database host name used by the XAMPP setup.
+$host = "localhost";
+
+// Use the default XAMPP MySQL username for local development.
+$user = "root";
+
+// XAMPP usually runs MySQL without a password in local testing.
+$pass = "";
+
+// This is the database name created by the schema.sql file.
+$dbname = "waste_db";
+
+// Create one reusable mysqli connection object for the whole app.
 $conn = new mysqli($host, $user, $pass, $dbname);
 
-// 3. CHECK THE CONNECTION
+// If the connection failed, stop the script immediately and show the error.
 if ($conn->connect_error) {
-    // If something went wrong, stop execution and print the error message
     die("Database Connection Failed: " . $conn->connect_error);
 }
 
-// Connection successful! 
-// $conn object is now ready to run SQL queries in other PHP files.
+// The connection is ready, so other PHP files can run queries using $conn.
 ?>

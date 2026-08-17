@@ -1,13 +1,25 @@
 <?php
-require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/auth/auth_guard.php';
-require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/database/db.php';
+// ------------------------------------------------------
+// manage_users.php
+// Lets an admin create new user accounts and search for
+// existing users by name, username, or contact details.
+// ------------------------------------------------------
 
+require_once __DIR__ . '/../config.php';
+
+// Protect this page so only logged-in admins can access it.
+require_once app_path('auth/auth_guard.php');
+// Load the shared database connection needed for account and search queries.
+require_once app_path('database/db.php');
+
+// Only admin users are allowed to manage accounts.
 requireAdmin();
 $active_page = 'users';
 
 /* ---------------------------------------------------------------------
  * ADD USER — insert a new login record into users
  * ------------------------------------------------------------------- */
+// Store success or error messages for the add-user form after redirecting back to the page.
 $add_user_message = '';
 $add_user_error   = '';
 
@@ -20,6 +32,7 @@ if (!empty($_SESSION['add_user_error'])) {
     unset($_SESSION['add_user_error']);
 }
 
+// If the admin submits the add-user form, validate and insert the new account.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_user_submit'])) {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
@@ -30,13 +43,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_user_submit'])) {
 
     $allowed_roles = ['admin', 'resident'];
 
+    // Reject incomplete form data before creating a user record.
     if ($username === '' || $password === '' || $role === '' || $name === '' || $contact === '' || $address === '') {
         $_SESSION['add_user_error'] = "Please fill in all required fields.";
     } elseif (!in_array($role, $allowed_roles, true)) {
         $_SESSION['add_user_error'] = "Invalid role selected. Please choose admin or resident.";
     } else {
+        // Hash the password before saving it so the stored value is not plain text.
         $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
+        // Insert the new user record with the hashed password and chosen role.
         $insert_stmt = $conn->prepare(
             "INSERT INTO users (username, password, role, name, address, contact)
              VALUES (?, ?, ?, ?, ?, ?)"
@@ -69,14 +85,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_user_submit'])) {
         }
     }
 
-    // Post/Redirect/Get so refreshing the page doesn't resubmit the form.
+    // Redirect back to the page after the POST so the form is not resubmitted on refresh.
     header("Location: " . $_SERVER['PHP_SELF']);
+    // Stop execution immediately so the redirect is the final action.
     exit;
 }
 
 /* ---------------------------------------------------------------------
  * REGISTERED USERS — fetch all login accounts from users
  * ------------------------------------------------------------------- */
+// Load the current list of users for the table on the page.
 $users = [];
 $users_result = $conn->query("SELECT id, username, role, name, address, contact, created_at FROM users ORDER BY created_at DESC");
 if ($users_result) {
@@ -88,6 +106,7 @@ if ($users_result) {
  * Queries the real `users` table. Column choice is restricted to
  * a whitelist so the field name is never taken directly from input.
  * ------------------------------------------------------------------- */
+// Limit the search to safe columns only so a user cannot query arbitrary database fields.
 $search_field_columns = [
     'name'     => 'name',
     'username' => 'username',
@@ -105,6 +124,7 @@ $search_results   = [];
 $search_error     = '';
 $search_performed = false;
 
+// If the user pressed the search button, run a filtered lookup against the users table.
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
     $search_performed = true;
     $search_query = trim($_GET['search_query'] ?? '');
@@ -120,6 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
         $column    = $search_field_columns[$search_field];
         $like_term = '%' . $search_query . '%';
 
+        // Search only the selected field using a wildcard match to find partially matching records.
         $search_stmt = $conn->prepare(
             "SELECT id, username, role, name, address, contact, created_at
              FROM users
@@ -144,12 +165,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
   <meta charset="UTF-8">
   <title>Manage Users - CleanCity</title>
 
-  <link rel="stylesheet" href="/waste-project/shared/style.css">
-  <link rel="stylesheet" href="/waste-project/admin/css/userformv1.css">
+  <link rel="stylesheet" href="<?= app_url('shared/style.css') ?>">
+  <link rel="stylesheet" href="<?= app_url('admin/css/userformv1.css') ?>">
 
 </head>
 <body>
-<?php include $_SERVER['DOCUMENT_ROOT'] . '/waste-project/shared/navbar.php'; ?>
+<?php include app_path('shared/navbar.php'); ?>
 
 <div class="page-content">
 

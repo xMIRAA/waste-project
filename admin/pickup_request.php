@@ -1,7 +1,18 @@
 <?php
-require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/auth/auth_guard.php';
-require $_SERVER['DOCUMENT_ROOT'] . '/waste-project/database/db.php';
+// ------------------------------------------------------
+// pickup_request.php
+// Shows all resident pickup requests and lets the admin
+// change each request from pending to done or declined.
+// ------------------------------------------------------
 
+require_once __DIR__ . '/../config.php';
+
+// Protect the page so only logged-in admins can manage requests.
+require_once app_path('auth/auth_guard.php');
+// Load the database connection used for pickup request updates and reads.
+require_once app_path('database/db.php');
+
+// Require admin role for this page.
 requireAdmin();
 $active_page = 'pickup_requests';
 
@@ -17,17 +28,21 @@ if (!empty($_SESSION['status_error'])) {
     unset($_SESSION['status_error']);
 }
 
-$allowed_statuses = ['pending', 'done', 'declined'];
+$allowed_statuses = array('pending', 'done', 'declined');
 
 /* ---------------------------------------------------------------------
  * UPDATE STATUS — pending / done / declined
  * ------------------------------------------------------------------- */
+// If the admin updates a request status, validate the ID and status before changing the row.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
     $request_id = (int) ($_POST['request_id'] ?? 0);
     $new_status = $_POST['status'] ?? '';
 
+    // Only allow known statuses so invalid values cannot be stored in the database.
     if ($request_id > 0 && in_array($new_status, $allowed_statuses, true)) {
+        // Update the request row to the chosen status for that pickup ID.
         $update_stmt = $conn->prepare("UPDATE pickup_requests SET states = ? WHERE id = ?");
+        // Bind the status and request ID safely with prepared statements.
         $update_stmt->bind_param("si", $new_status, $request_id);
 
         if ($update_stmt->execute()) {
@@ -41,14 +56,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
         $_SESSION['status_error'] = "Invalid update request.";
     }
 
-    // Post/Redirect/Get so refreshing the page doesn't resubmit the update.
+    // Redirect back to this page after the POST so a refresh does not resubmit the same update.
     header("Location: " . $_SERVER['PHP_SELF']);
+    // Stop immediately so no extra code runs after the redirect.
     exit;
 }
 
 /* ---------------------------------------------------------------------
  * FETCH ALL PICKUP REQUESTS — joined with the requesting user
  * ------------------------------------------------------------------- */
+// Pull each request together with the resident username so the admin can see who submitted it.
 $requests = [];
 $fetch_stmt = $conn->prepare(
     "SELECT pr.id, pr.waste_type, pr.pickup_date, pr.time_slot, pr.notes, pr.states, pr.created_at,
@@ -69,11 +86,11 @@ if ($fetch_stmt) {
 <head>
   <meta charset="UTF-8">
   <title>Pickup Requests</title>
-  <link rel="stylesheet" href="/waste-project/shared/style.css">
-  <link rel="stylesheet" href="/waste-project/admin/css/pickup-req.css">
+  <link rel="stylesheet" href="<?= app_url('shared/style.css') ?>">
+  <link rel="stylesheet" href="<?= app_url('admin/css/pickup-req.css') ?>">
 </head>
 <body>
-<?php include $_SERVER['DOCUMENT_ROOT'] . '/waste-project/shared/navbar.php'; ?>
+<?php include app_path('shared/navbar.php'); ?>
 <div class="page-content">
 
   <div class="card-white requests-card">

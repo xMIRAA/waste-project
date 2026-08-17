@@ -1,7 +1,7 @@
 CREATE DATABASE IF NOT EXISTS waste_db;
 USE waste_db;
 
--- Table to store user credentials and roles
+-- Create the users table to store login credentials, role, profile details, and account creation time.
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Create the pickup_requests table to store each resident's request for waste collection and its current status.
 CREATE TABLE IF NOT EXISTS pickup_requests (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -25,6 +26,7 @@ CREATE TABLE IF NOT EXISTS pickup_requests (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- Create the complaints table to store resident complaints and their resolution state.
 CREATE TABLE IF NOT EXISTS complaints (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -36,9 +38,7 @@ CREATE TABLE IF NOT EXISTS complaints (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Table to store the weekly waste collection schedule shown on the
--- resident schedule.php page. Populated by an admin (no admin page
--- for this yet).
+-- Create the pickup_schedule table to store the weekly collection plan shown to residents.
 CREATE TABLE IF NOT EXISTS pickup_schedule (
     id INT AUTO_INCREMENT PRIMARY KEY,
     pickup_date DATE NOT NULL,
@@ -47,9 +47,11 @@ CREATE TABLE IF NOT EXISTS pickup_schedule (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Create the default resident account so a resident can log in during testing.
 INSERT INTO users (username, password, role) 
 VALUES ('ucsc', '$2y$10$5Jg5H0n61N3QVyFD1e53g.F.XvysjBBUvgi0Lq/80IDREPfezryG.', 'resident')
 ON DUPLICATE KEY UPDATE id=id;
+-- Create the default admin account and set the role to admin because admin-only access must be restricted by role.
 INSERT INTO users (username, password, role) 
 VALUES ('admin', '$2y$10$SxNNnTu1RDzhPxXOAYK9c.5/WO.mMnx2QHEFek8OSPvT6Sxe5EQCi', 'admin')
 ON DUPLICATE KEY UPDATE id=id;
