@@ -59,27 +59,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_user_submit'])) {
         );
 
         if ($insert_stmt) {
-            $insert_stmt->bind_param(
-                "ssssss",
-                $username,
-                $password_hash,
-                $role,
-                $name,
-                $address,
-                $contact
-            );
-
-            if ($insert_stmt->execute()) {
+            try {
+                $insert_stmt->execute([
+                    $username,
+                    $password_hash,
+                    $role,
+                    $name,
+                    $address,
+                    $contact,
+                ]);
                 $_SESSION['add_user_message'] = "User account created successfully.";
-            } else {
-                if ($insert_stmt->errno === 1062) {
+            } catch (PDOException $e) {
+                if (($e->errorInfo[1] ?? null) === 1062) {
                     $_SESSION['add_user_error'] = "That username is already taken. Please choose a different username.";
                 } else {
                     $_SESSION['add_user_error'] = "Error creating user account. Please try again.";
                 }
             }
-
-            $insert_stmt->close();
         } else {
             $_SESSION['add_user_error'] = "Unable to create user account right now.";
         }
@@ -98,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_user_submit'])) {
 $users = [];
 $users_result = $conn->query("SELECT id, username, role, name, address, contact, created_at FROM users ORDER BY created_at DESC");
 if ($users_result) {
-    $users = $users_result->fetch_all(MYSQLI_ASSOC);
+    $users = $users_result->fetchAll();
 }
 
 /* ---------------------------------------------------------------------
@@ -149,10 +145,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
         );
 
         if ($search_stmt) {
-            $search_stmt->bind_param("s", $like_term);
-            $search_stmt->execute();
-            $search_results = $search_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-            $search_stmt->close();
+            $search_stmt->execute([$like_term]);
+            $search_results = $search_stmt->fetchAll();
         } else {
             $search_error = "Search is temporarily unavailable. Please try again later.";
         }

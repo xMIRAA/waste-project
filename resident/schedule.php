@@ -25,10 +25,8 @@ $stmt = $conn->prepare(
      ORDER BY pickup_date ASC"
 );
 
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-
-$schedules = $stmt->get_result();
+$stmt->execute([$user_id]);
+$schedules = $stmt->fetchAll();
 ?>
 
 <!DOCTYPE html>
@@ -72,9 +70,9 @@ $schedules = $stmt->get_result();
 
             <?php
 
-            if ($schedules->num_rows > 0) {
+            if (!empty($schedules)) {
 
-                while ($row = $schedules->fetch_assoc()) {
+                foreach ($schedules as $row) {
 
             ?>
 
@@ -116,7 +114,6 @@ $schedules = $stmt->get_result();
 
             }
 
-            $stmt->close();
 
             ?>
 

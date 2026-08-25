@@ -27,9 +27,7 @@ $stmt = $conn->prepare(
 
 $stmt->execute();
 
-$next_pickup = $stmt->get_result()->fetch_assoc();
-
-$stmt->close();
+$next_pickup = $stmt->fetch();
 ?>
 <!DOCTYPE html>
 <html>

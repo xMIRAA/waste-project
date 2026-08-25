@@ -33,21 +33,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     VALUES (?, ?, ?, ?)"
 );
 
-$stmt->bind_param(
-    "isss",
+if ($stmt->execute([
     $user_id,
     $type,
     $subject,
     $description
-);
-
-if ($stmt->execute()) {
+])) {
     $message = "Complaint submitted successfully!";
 } else {
-    $message = "Error: " . $stmt->error;
+    $message = "Error submitting complaint.";
 }
 
-$stmt->close();
 }
 
  $user_id = $_SESSION['user_id'];
@@ -60,10 +56,8 @@ $stmt = $conn->prepare(
      ORDER BY created_at DESC"
 );
 
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-
-$complaints = $stmt->get_result();
+$stmt->execute([$user_id]);
+$complaints = $stmt->fetchAll();
 ?>
 
 <!DOCTYPE html>
@@ -180,7 +174,7 @@ $complaints = $stmt->get_result();
 
         <tbody>
 
-<?php while ($row = $complaints->fetch_assoc()) { ?>
+<?php foreach ($complaints as $row) { ?>
 
 <tr>
 
@@ -217,8 +211,6 @@ $complaints = $stmt->get_result();
 </tr>
 
 <?php } ?>
-
-<?php $stmt->close(); ?>
 
 </tbody>
 

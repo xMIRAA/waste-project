@@ -42,16 +42,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
     if ($request_id > 0 && in_array($new_status, $allowed_statuses, true)) {
         // Update the request row to the chosen status for that pickup ID.
         $update_stmt = $conn->prepare("UPDATE pickup_requests SET states = ? WHERE id = ?");
-        // Bind the status and request ID safely with prepared statements.
-        $update_stmt->bind_param("si", $new_status, $request_id);
-
-        if ($update_stmt->execute()) {
+           // Execute the prepared statement with the status and request ID safely supplied.
+        if ($update_stmt->execute([$new_status, $request_id])) {
             $_SESSION['status_message'] = "Request #{$request_id} marked as " . ucfirst($new_status) . ".";
         } else {
             $_SESSION['status_error'] = "Failed to update the request. Please try again.";
         }
 
-        $update_stmt->close();
     } else {
         $_SESSION['status_error'] = "Invalid update request.";
     }
@@ -77,8 +74,7 @@ $fetch_stmt = $conn->prepare(
 
 if ($fetch_stmt) {
     $fetch_stmt->execute();
-    $requests = $fetch_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    $fetch_stmt->close();
+    $requests = $fetch_stmt->fetchAll();
 }
 ?>
 <!DOCTYPE html>

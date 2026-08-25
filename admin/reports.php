@@ -42,16 +42,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
     if ($complaint_id > 0 && in_array($new_status, $allowed_statuses, true)) {
         // Update the complaint row to the selected status.
         $update_stmt = $conn->prepare("UPDATE complaints SET states = ? WHERE id = ?");
-        // Bind the status and complaint ID securely with prepared parameters.
-        $update_stmt->bind_param("si", $new_status, $complaint_id);
-
-        if ($update_stmt->execute()) {
+           // Execute the prepared statement with the status and complaint ID securely supplied.
+        if ($update_stmt->execute([$new_status, $complaint_id])) {
             $_SESSION['status_message'] = "Complaint #{$complaint_id} marked as " . ucfirst($new_status) . ".";
         } else {
             $_SESSION['status_error'] = "Failed to update the complaint. Please try again.";
         }
 
-        $update_stmt->close();
     } else {
         $_SESSION['status_error'] = "Invalid update request.";
     }
@@ -77,8 +74,7 @@ $fetch_stmt = $conn->prepare(
 
 if ($fetch_stmt) {
     $fetch_stmt->execute();
-    $complaints = $fetch_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    $fetch_stmt->close();
+    $complaints = $fetch_stmt->fetchAll();
 }
 ?>
 <!DOCTYPE html>

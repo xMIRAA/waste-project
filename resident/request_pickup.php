@@ -63,10 +63,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     "SELECT COUNT(*) AS cnt FROM pickup_requests
                      WHERE user_id = ? AND pickup_date = ?"
                 );
-                $check->bind_param("is", $user_id, $pickup_date);
-                $check->execute();
-                $count_row = $check->get_result()->fetch_assoc();
-                $check->close();
+                $check->execute([$user_id, $pickup_date]);
+                $count_row = $check->fetch();
 
                 if ($count_row['cnt'] > 0) {
                     $error = "You already have a pickup request for that date. Only one request per day is allowed.";
@@ -78,22 +76,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         VALUES (?, ?, ?, ?, ?)"
                     );
 
-                    $insert_stmt->bind_param(
-                        "issss",
+                    if ($insert_stmt->execute([
                         $user_id,
                         $waste_type,
                         $pickup_date,
                         $time_slot,
                         $notes
-                    );
-
-                    if ($insert_stmt->execute()) {
+                    ])) {
                         $_SESSION['pickup_message'] = "Pickup request submitted successfully!";
                     } else {
                         $_SESSION['pickup_message'] = "Error submitting request. Please try again.";
                     }
-
-                    $insert_stmt->close();
 
                     // Redirect (Post/Redirect/Get) so refreshing the page does not resubmit the form.
                     header("Location: " . $_SERVER['PHP_SELF']);
@@ -114,10 +107,8 @@ $select_stmt = $conn->prepare(
      ORDER BY created_at DESC"
 );
 
-$select_stmt->bind_param("i", $user_id);
-$select_stmt->execute();
-
-$pickup_requests = $select_stmt->get_result();
+$select_stmt->execute([$user_id]);
+$pickup_requests = $select_stmt->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -237,13 +228,13 @@ $pickup_requests = $select_stmt->get_result();
             </thead>
             <tbody>
 
-            <?php if ($pickup_requests->num_rows === 0) { ?>
+            <?php if (empty($pickup_requests)) { ?>
                 <tr>
                     <td colspan="6" style="text-align:center;">No pickup requests yet.</td>
                 </tr>
             <?php } ?>
 
-            <?php while ($row = $pickup_requests->fetch_assoc()) { ?>
+            <?php foreach ($pickup_requests as $row) { ?>
 
                 <tr>
 
@@ -276,8 +267,6 @@ $pickup_requests = $select_stmt->get_result();
     </div>
 
 </div>
-
-<?php $select_stmt->close(); ?>
 
 </body>
 </html>
