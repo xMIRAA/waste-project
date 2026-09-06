@@ -199,3 +199,10 @@
     background-color: #e1f5ee;
     transition: background-color 0.2s ease;
 }
+
+@media (max-width: 700px) {
+    .user-schedule-section { padding: 20px 14px; }
+    .schedule-table { display: block; overflow-x: auto; min-width: 520px; }
+    .udf-layout .form-card-wrapper { flex-basis: 100%; }
+    .form-card { max-width: none; padding: 22px 18px; }
+}

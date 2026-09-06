@@ -102,6 +102,20 @@ button{
     flex-direction:column;
 }
 
+/* Refined complaint workflow presentation */
+.complaints-section { padding: 26px 0 46px; border-top: 0; }
+.complaints-section h2 { margin: 0 0 8px; color: #123f35; font-size: clamp(30px, 4vw, 44px); }
+.complaints-section > p { max-width: 620px; margin: 0 auto 30px; color: #65756f; }
+.complaint-container { max-width: 1080px; margin: 0 auto 24px; align-items: stretch; }
+.complaint-form, .complaint-guide, .complaint-history { box-shadow: 0 14px 30px rgba(22, 61, 50, .08); }
+.complaint-form { padding: clamp(24px, 4vw, 38px); }
+.complaint-form h3, .complaint-guide h3, .complaint-history h3 { margin-top: 0; color: #123f35; }
+.complaint-guide { background: linear-gradient(145deg, #dff1e8, #f4faf7); border-color: #c3dfd1; }
+.complaint-guide li { margin-bottom: 12px; color: #416358; }
+.complaint-history { padding: clamp(20px, 4vw, 32px); }
+.complaint-history th { background: #123f35; font-size: 11px; letter-spacing: .08em; }
+.complaint-history td { padding: 14px 12px; border-color: #e1ece7; }
+
 button{
     width:100%;
 }

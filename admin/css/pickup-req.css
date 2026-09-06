@@ -140,3 +140,10 @@
         flex-wrap: wrap;
     }
 }
+
+@media (max-width: 640px) {
+    .requests-card { padding: 20px 12px; }
+    .requests-table { display: block; overflow-x: auto; min-width: 1060px; }
+    .status-update-form { flex-wrap: nowrap; }
+    .status-update-form select, .status-update-form .btn-primary { min-height: 40px; }
+}

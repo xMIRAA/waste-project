@@ -147,3 +147,10 @@
         flex-wrap: wrap;
     }
 }
+
+@media (max-width: 640px) {
+    .reports-card { padding: 20px 12px; }
+    .reports-table { display: block; overflow-x: auto; min-width: 980px; }
+    .status-update-form { flex-wrap: nowrap; }
+    .status-update-form select, .status-update-form .btn-primary { min-height: 40px; }
+}

@@ -87,6 +87,20 @@ button{
     flex-direction:column;
 }
 
+/* Refined pickup request presentation */
+.page-content > center { display: block; padding: 12px 0 24px; }
+.page-content > center h1 { margin: 0 0 8px; color: #123f35; font-size: clamp(30px, 4vw, 44px); }
+.page-description { color: #65756f; }
+.request-container { max-width: 1080px; margin: 0 auto 24px; align-items: stretch; }
+.request-container .form-card, .guide-card, .history-card { box-shadow: 0 14px 30px rgba(22, 61, 50, .08); }
+.request-container .form-card { padding: clamp(24px, 4vw, 38px); }
+.request-container .form-card h2, .guide-card h2, .history-card h2 { margin-top: 0; color: #123f35; }
+.guide-card { background: linear-gradient(145deg, #dff1e8, #f4faf7); border-color: #c3dfd1; }
+.guide-card li { margin-bottom: 12px; color: #416358; }
+.history-card { padding: clamp(20px, 4vw, 32px); }
+.history-table th { background: #123f35; font-size: 11px; letter-spacing: .08em; }
+.history-table td { padding: 14px 12px; border-color: #e1ece7; }
+
 button{
     width:100%;
 }

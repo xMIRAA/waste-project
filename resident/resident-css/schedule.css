@@ -2,36 +2,16 @@
    Schedule Section
 =========================== */
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> admin-v1
 .page-content{
     padding:30px 20px;
     border-top: 3px solid #1D9E75;
 }
-
-<<<<<<< HEAD
-=======
->>>>>>> 98123f0a699a452d3c96efc5d763f75f345e9ed9
-=======
->>>>>>> admin-v1
 .schedule-section {
     padding: 80px 20px;
     background-color: #E1F5EE; /* Project Tint */
     text-align: center;
-<<<<<<< HEAD
-<<<<<<< HEAD
     min-height: 100vh;
     border-radius: 10px;
-=======
-    border-top: 3px solid #1D9E75; /* Primary */
-    min-height: 100vh;
->>>>>>> 98123f0a699a452d3c96efc5d763f75f345e9ed9
-=======
-    min-height: 100vh;
-    border-radius: 10px;
->>>>>>> admin-v1
 }
 
 .schedule-section h2 {
@@ -83,4 +63,76 @@
 
 .schedule-table td {
     color: #333;
+}
+
+/* Refined resident schedule presentation */
+.schedule-section {
+    position: relative;
+    padding: 42px clamp(18px, 4vw, 52px) 52px;
+    background: linear-gradient(135deg, #f8fcfa 0%, #e6f3ed 100%);
+    border: 1px solid #cfe2d9;
+    border-radius: 18px;
+    box-shadow: 0 18px 40px rgba(22, 61, 50, .10);
+    text-align: left;
+    overflow: hidden;
+}
+
+.schedule-section::before {
+    content: "RESIDENT PORTAL  /  SERVICE TRACKING";
+    display: block;
+    margin-bottom: 14px;
+    color: #147d63;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .16em;
+}
+
+.schedule-section h2 {
+    margin: 0 0 8px;
+    color: #123f35;
+    font-size: clamp(28px, 4vw, 42px);
+}
+
+.schedule-section p {
+    max-width: 560px;
+    margin: 0 0 30px;
+    color: #65756f;
+    font-size: 15px;
+}
+
+.schedule-table {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    background: #fff;
+    border: 1px solid #d6e4de;
+    border-radius: 12px;
+    box-shadow: 0 8px 22px rgba(22, 61, 50, .07);
+}
+
+.schedule-table th {
+    padding: 15px 18px;
+    background: #123f35;
+    color: #fff;
+    font-size: 11px;
+    letter-spacing: .1em;
+}
+
+.schedule-table td {
+    padding: 17px 18px;
+    color: #27473e;
+    font-size: 14px;
+    border-bottom: 1px solid #e5efeb;
+}
+
+.schedule-table tbody tr:hover { background: #f0f8f4; }
+
+.schedule-table td:last-child {
+    color: #147d63;
+    font-weight: 700;
+}
+
+@media (max-width: 650px) {
+    .schedule-section { padding: 30px 14px; }
+    .schedule-table { display: block; overflow-x: auto; white-space: nowrap; }
 }

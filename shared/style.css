@@ -312,3 +312,174 @@ form { max-width: 1040px; }
 .confirm-form {
     margin-top: 14px;
 }
+
+/* ==========================
+   PRESENTATION UI OVERRIDES
+   ========================== */
+:root {
+    --ink: #17352f;
+    --muted: #65756f;
+    --line: #dce7e2;
+    --surface: #ffffff;
+    --surface-soft: #f4f8f6;
+    --brand: #147d63;
+    --brand-dark: #0b4f40;
+    --accent: #e8f4ef;
+    --shadow: 0 10px 28px rgba(22, 61, 50, 0.08);
+}
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+    background: #eef4f1;
+    color: var(--ink);
+    line-height: 1.5;
+}
+
+.page-content {
+    width: min(100% - 40px, 1320px);
+    max-width: 1320px;
+    padding: 34px 0 56px;
+}
+
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    min-height: 68px;
+    padding: 12px max(24px, calc((100vw - 1320px) / 2));
+    gap: 24px;
+    background: rgba(255, 255, 255, 0.96);
+    border-bottom: 1px solid var(--line);
+    box-shadow: 0 3px 14px rgba(22, 61, 50, 0.06);
+}
+
+.navbar-brand,
+.brand-block {
+    color: var(--brand-dark);
+    letter-spacing: -0.02em;
+}
+
+.navbar-brand::after {
+    content: " / waste services";
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0;
+}
+
+.navbar-links {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+}
+
+.navbar-links a {
+    margin-right: 0;
+    padding: 8px 10px;
+    border-radius: 7px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    transition: color .2s ease, background-color .2s ease;
+}
+
+.navbar-links a:hover,
+.navbar-links a:focus-visible {
+    color: var(--brand-dark);
+    background: var(--accent);
+}
+
+.navbar-user {
+    white-space: nowrap;
+    color: var(--muted);
+}
+
+.navbar-user .logout {
+    padding: 7px 10px;
+    border: 1px solid #efcfc8;
+    border-radius: 7px;
+    color: #a04f43;
+    font-weight: 600;
+}
+
+.navbar-user .logout:hover { background: #fff5f2; }
+
+.badge-admin {
+    background: #f8e5b6;
+    color: #745016;
+    font-weight: 700;
+}
+
+.card,
+.card-white,
+.form-card,
+.user-schedule-section,
+.requests-card,
+.reports-card,
+.history-card,
+.complaint-form,
+.complaint-history,
+.next-pickup-card,
+.information-card,
+.guide-card,
+.complaint-guide {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+}
+
+.card, .card-white { background: var(--surface); }
+
+h1, h2, h3, h4 { letter-spacing: -0.025em; }
+h1 { font-size: clamp(26px, 3vw, 38px); }
+h2 { font-size: 24px; }
+
+input[type=text], input[type=tel], input[type=email], input[type=password], input[type=date], select, textarea {
+    border: 1px solid #cbdad4;
+    border-radius: 7px;
+    background: #fbfdfc;
+    color: var(--ink);
+    transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+}
+
+input[type=text]:focus, input[type=tel]:focus, input[type=email]:focus,
+input[type=password]:focus, input[type=date]:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--brand);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(20, 125, 99, .13);
+}
+
+.btn-primary, .btn-secondary {
+    border-radius: 7px;
+    font-weight: 700;
+    transition: transform .2s ease, background-color .2s ease, box-shadow .2s ease;
+}
+
+.btn-primary { background: var(--brand); box-shadow: 0 4px 10px rgba(20, 125, 99, .18); }
+.btn-primary:hover { background: #0f6c56; transform: translateY(-1px); }
+.btn-secondary { border-color: #bfd0c9; color: var(--brand-dark); }
+.btn-secondary:hover { background: var(--surface-soft); transform: translateY(-1px); }
+
+table { border-color: var(--line); }
+th { letter-spacing: .03em; text-transform: uppercase; }
+
+@media (max-width: 980px) {
+    .navbar { flex-wrap: wrap; gap: 8px 16px; }
+    .navbar-links { order: 3; width: 100%; overflow-x: auto; padding-bottom: 2px; }
+    .navbar-user { margin-left: auto; }
+}
+
+@media (max-width: 600px) {
+    .page-content { width: min(100% - 24px, 1320px); padding-top: 22px; }
+    .navbar { padding: 12px; }
+    .navbar-brand::after { display: none; }
+    .navbar-user { font-size: 12px; }
+    .navbar-links a { padding: 7px 8px; }
+    .hero-copy h1 { font-size: 34px; }
+    .landing-page { padding: 20px 18px 40px; }
+    .landing-hero, .feature-grid { grid-template-columns: 1fr; }
+}

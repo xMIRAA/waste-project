@@ -259,3 +259,12 @@
     background-color: #e1f5ee;
     transition: background-color 0.2s ease;
 }
+
+@media (max-width: 700px) {
+    .form-card-wrapper { padding: 10px 0; }
+    .form-card { max-width: none; padding: 22px 18px; }
+    .udf-layout { gap: 8px; }
+    .user-schedule-section { margin-top: 14px; padding: 20px 14px; }
+    .schedule-table { display: block; overflow-x: auto; min-width: 700px; }
+    .address-row { flex-direction: column; gap: 0; }
+}

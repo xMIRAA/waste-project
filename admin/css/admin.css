@@ -116,3 +116,9 @@
         overflow-x: auto;
     }
 }
+
+@media (max-width: 640px) {
+    .user-records-card { padding: 18px 14px; }
+    .user-records-table { min-width: 760px; }
+    .admin-link-card { padding: 18px; }
+}
