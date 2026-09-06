@@ -59,22 +59,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_user_submit'])) {
         );
 
         if ($insert_stmt) {
-            try {
-                $insert_stmt->execute([
-                    $username,
-                    $password_hash,
-                    $role,
-                    $name,
-                    $address,
-                    $contact,
-                ]);
+            $insert_stmt->bind_param(
+                "ssssss",
+                $username,
+                $password_hash,
+                $role,
+                $name,
+                $address,
+                $contact
+            );
+
+            if ($insert_stmt->execute()) {
                 $_SESSION['add_user_message'] = "User account created successfully.";
-            } catch (PDOException $e) {
-                if (($e->errorInfo[1] ?? null) === 1062) {
-                    $_SESSION['add_user_error'] = "That username is already taken. Please choose a different username.";
-                } else {
-                    $_SESSION['add_user_error'] = "Error creating user account. Please try again.";
-                }
+            } elseif ($conn->errno === 1062) {
+                $_SESSION['add_user_error'] = "That username is already taken. Please choose a different username.";
+            } else {
+                $_SESSION['add_user_error'] = "Error creating user account. Please try again.";
             }
         } else {
             $_SESSION['add_user_error'] = "Unable to create user account right now.";
@@ -94,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_user_submit'])) {
 $users = [];
 $users_result = $conn->query("SELECT id, username, role, name, address, contact, created_at FROM users ORDER BY created_at DESC");
 if ($users_result) {
-    $users = $users_result->fetchAll();
+    $users = $users_result->fetch_all(MYSQLI_ASSOC);
 }
 
 /* ---------------------------------------------------------------------
@@ -145,8 +145,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
         );
 
         if ($search_stmt) {
-            $search_stmt->execute([$like_term]);
-            $search_results = $search_stmt->fetchAll();
+            $search_stmt->bind_param("s", $like_term);
+            $search_stmt->execute();
+            $search_results = $search_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         } else {
             $search_error = "Search is temporarily unavailable. Please try again later.";
         }

@@ -31,7 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Insert the schedule row with the selected date, waste type, and service area.
         $stmt = $conn->prepare("INSERT INTO pickup_schedule (pickup_date, waste_type, area) VALUES (?, ?, ?)");
         // Use a prepared statement so the form values are bound safely instead of being placed directly into SQL.
-        if ($stmt->execute([$pickup_date, $waste_type, $area])) {
+        $stmt->bind_param("sss", $pickup_date, $waste_type, $area);
+        if ($stmt->execute()) {
             $success_message = "Pickup schedule added successfully.";
         } else {
             $error_message = "Error adding schedule. Please try again.";
@@ -45,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Read the saved schedule rows so the current week and future dates can be displayed.
 $stmt = $conn->prepare("SELECT * FROM pickup_schedule ORDER BY pickup_date ASC");
 $stmt->execute();
-$schedules = $stmt->fetchAll();
+$schedules = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 ?>
 <!DOCTYPE html>
 <html>

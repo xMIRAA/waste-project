@@ -63,8 +63,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     "SELECT COUNT(*) AS cnt FROM pickup_requests
                      WHERE user_id = ? AND pickup_date = ?"
                 );
-                $check->execute([$user_id, $pickup_date]);
-                $count_row = $check->fetch();
+                $check->bind_param("is", $user_id, $pickup_date);
+                $check->execute();
+                $count_row = $check->get_result()->fetch_assoc();
 
                 if ($count_row['cnt'] > 0) {
                     $error = "You already have a pickup request for that date. Only one request per day is allowed.";
@@ -76,13 +77,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         VALUES (?, ?, ?, ?, ?)"
                     );
 
-                    if ($insert_stmt->execute([
+                    $insert_stmt->bind_param(
+                        "issss",
                         $user_id,
                         $waste_type,
                         $pickup_date,
                         $time_slot,
                         $notes
-                    ])) {
+                    );
+
+                    if ($insert_stmt->execute()) {
                         $_SESSION['pickup_message'] = "Pickup request submitted successfully!";
                     } else {
                         $_SESSION['pickup_message'] = "Error submitting request. Please try again.";
@@ -107,8 +111,9 @@ $select_stmt = $conn->prepare(
      ORDER BY created_at DESC"
 );
 
-$select_stmt->execute([$user_id]);
-$pickup_requests = $select_stmt->fetchAll();
+$select_stmt->bind_param("i", $user_id);
+$select_stmt->execute();
+$pickup_requests = $select_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="en">

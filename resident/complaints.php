@@ -33,12 +33,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     VALUES (?, ?, ?, ?)"
 );
 
-if ($stmt->execute([
-    $user_id,
-    $type,
-    $subject,
-    $description
-])) {
+ $stmt->bind_param("isss", $user_id, $type, $subject, $description);
+if ($stmt->execute()) {
     $message = "Complaint submitted successfully!";
 } else {
     $message = "Error submitting complaint.";
@@ -56,8 +52,9 @@ $stmt = $conn->prepare(
      ORDER BY created_at DESC"
 );
 
-$stmt->execute([$user_id]);
-$complaints = $stmt->fetchAll();
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$complaints = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 ?>
 
 <!DOCTYPE html>

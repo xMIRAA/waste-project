@@ -25,8 +25,9 @@ $stmt = $conn->prepare(
      ORDER BY pickup_date ASC"
 );
 
-$stmt->execute([$user_id]);
-$schedules = $stmt->fetchAll();
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$schedules = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 ?>
 
 <!DOCTYPE html>

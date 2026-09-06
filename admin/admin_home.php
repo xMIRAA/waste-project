@@ -29,7 +29,7 @@ $fetch_stmt = $conn->prepare(
 
 if ($fetch_stmt) {
     $fetch_stmt->execute();
-  $user_records = $fetch_stmt->fetchAll();
+    $user_records = $fetch_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 }
 ?>
 <!DOCTYPE html>

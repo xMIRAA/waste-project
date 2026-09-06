@@ -17,21 +17,14 @@ $pass = "";
 // This is the database name created by the schema.sql file.
 $dbname = "waste_db";
 
-// Create one reusable PDO connection object for the whole app.
-try {
-    $conn = new PDO(
-        "mysql:host=$host;dbname=$dbname;charset=utf8mb4",
-        $user,
-        $pass,
-        [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES => false,
-        ]
-    );
-} catch (PDOException $e) {
+// Create one reusable object-oriented MySQLi connection for the whole app.
+$conn = new mysqli($host, $user, $pass, $dbname);
+
+if ($conn->connect_errno) {
     // If the connection failed, stop the script immediately.
     die("Database Connection Failed.");
 }
+
+$conn->set_charset("utf8mb4");
 
 // The connection is ready, so other PHP files can run queries using $conn.

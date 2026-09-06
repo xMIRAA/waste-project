@@ -26,10 +26,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Look up the submitted username in the users table.
     $stmt = $conn->prepare("SELECT id, username, password, role FROM users WHERE username = ?");
     // Use a prepared statement so the user input is bound safely instead of being inserted directly into SQL.
-    $stmt->execute([$username]);
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
 
     // If a matching user record exists, check the password against the stored hash.
-    if ($row = $stmt->fetch()) {
+    $row = $stmt->get_result()->fetch_assoc();
+    if ($row) {
         // Passwords are hashed, so we must verify the plain-text login password against the stored hash instead of comparing strings directly.
         if (password_verify($password, $row['password'])) {
             // Store the authenticated user's identity in the session so later pages can recognize them.
