@@ -63,6 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_user_submit'])
     } elseif (!preg_match('/^[0-9+\-\s]{7,20}$/', $contact)) {
         $_SESSION['update_user_error'] = "Please enter a valid contact number.";
     } else {
+        // READ: confirm that the selected user exists.
         $user_stmt = $conn->prepare("SELECT id, role FROM users WHERE id = ?");
         $user_stmt->bind_param("i", $update_user_id);
         $user_stmt->execute();
@@ -73,6 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_user_submit'])
         } elseif ($update_user_id === (int) $_SESSION['user_id'] && $role !== 'admin') {
             $_SESSION['update_user_error'] = "You cannot remove the admin role from the account currently in use.";
         } else {
+            // READ: prevent duplicate usernames before the update.
             $duplicate_stmt = $conn->prepare("SELECT id FROM users WHERE username = ? AND id <> ?");
             $duplicate_stmt->bind_param("si", $username, $update_user_id);
             $duplicate_stmt->execute();
@@ -82,11 +84,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_user_submit'])
             } else {
                 if ($password !== '') {
                     $password_hash = password_hash($password, PASSWORD_DEFAULT);
+                    // UPDATE: save the account fields and the new password.
                     $update_stmt = $conn->prepare(
                         "UPDATE users SET username = ?, password = ?, role = ?, name = ?, address = ?, contact = ? WHERE id = ?"
                     );
                     $update_stmt->bind_param("ssssssi", $username, $password_hash, $role, $name, $address, $contact, $update_user_id);
                 } else {
+                    // UPDATE: save the account fields and keep the current password.
                     $update_stmt = $conn->prepare(
                         "UPDATE users SET username = ?, role = ?, name = ?, address = ?, contact = ? WHERE id = ?"
                     );
@@ -117,6 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user_submit'])
     } elseif ($delete_user_id === (int) $_SESSION['user_id']) {
         $_SESSION['delete_user_error'] = "You cannot delete the account currently in use.";
     } else {
+        // DELETE: remove the selected user account.
         $delete_stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
 
         if ($delete_stmt) {
@@ -158,6 +163,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_user_submit'])) {
     } else {
         $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
+        // CREATE: insert the new user account.
         $insert_stmt = $conn->prepare(
             "INSERT INTO users (username, password, role, name, address, contact)
              VALUES (?, ?, ?, ?, ?, ?)"
@@ -192,6 +198,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_user_submit'])) {
 
 // Load all accounts for the main user table.
 $users = [];
+// READ: fetch users for the main table.
 $users_stmt = $conn->prepare(
     "SELECT id, username, role, name, address, contact, created_at
      FROM users
@@ -234,6 +241,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
         $column    = $search_field_columns[$search_field];
         $like_term = '%' . $search_query . '%';
 
+        // READ: fetch users matching the selected search field.
         $search_stmt = $conn->prepare(
             "SELECT id, username, role, name, address, contact, created_at
              FROM users

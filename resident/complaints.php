@@ -33,47 +33,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $description = trim($_POST['description'] ?? '');
 
     if ($action === 'delete' && $complaint_id > 0) {
-            $stmt = $conn->prepare("DELETE FROM complaints WHERE id = ? AND user_id = ? AND states = 'pending'");
-            $stmt->bind_param("ii", $complaint_id, $user_id);
-            if ($stmt->execute() && $stmt->affected_rows === 1) {
-                $_SESSION['complaint_message'] = "Complaint deleted successfully.";
-            } else {
-                $_SESSION['complaint_error'] = "Only your pending complaints can be deleted.";
-            }
+        // DELETE: remove only the resident's pending complaint.
+        $stmt = $conn->prepare("DELETE FROM complaints WHERE id = ? AND user_id = ? AND states = 'pending'");
+        $stmt->bind_param("ii", $complaint_id, $user_id);
+        if ($stmt->execute() && $stmt->affected_rows === 1) {
+            $_SESSION['complaint_message'] = "Complaint deleted successfully.";
+        } else {
+            $_SESSION['complaint_error'] = "Only your pending complaints can be deleted.";
+        }
     } elseif (!in_array($type, $allowed_types, true) || $subject === '' || $description === '') {
-            $_SESSION['complaint_error'] = "Complaint type, subject, and description are required.";
+        $_SESSION['complaint_error'] = "Complaint type, subject, and description are required.";
     } elseif (strlen($subject) > 150 || strlen($description) > 10000) {
-            $_SESSION['complaint_error'] = "The complaint subject or description is too long.";
+        $_SESSION['complaint_error'] = "The complaint subject or description is too long.";
     } elseif ($action === 'update' && $complaint_id > 0) {
-            $exists_stmt = $conn->prepare("SELECT id FROM complaints WHERE id = ? AND user_id = ? AND states = 'pending'");
-            $exists_stmt->bind_param("ii", $complaint_id, $user_id);
-            $exists_stmt->execute();
+        // READ: confirm that the resident owns a pending complaint.
+        $exists_stmt = $conn->prepare("SELECT id FROM complaints WHERE id = ? AND user_id = ? AND states = 'pending'");
+        $exists_stmt->bind_param("ii", $complaint_id, $user_id);
+        $exists_stmt->execute();
 
-            if (!$exists_stmt->get_result()->fetch_assoc()) {
-                $_SESSION['complaint_error'] = "Only your pending complaints can be updated.";
-            } else {
-                $stmt = $conn->prepare(
-                    "UPDATE complaints SET complaint_type = ?, complaint_subject = ?, complaint_text = ?
-                     WHERE id = ? AND user_id = ? AND states = 'pending'"
-                );
-                $stmt->bind_param("sssii", $type, $subject, $description, $complaint_id, $user_id);
-                if ($stmt->execute()) {
-                    $_SESSION['complaint_message'] = "Complaint updated successfully.";
-                } else {
-                    $_SESSION['complaint_error'] = "Error updating complaint.";
-                }
-            }
-    } elseif ($action === 'create') {
+        if (!$exists_stmt->get_result()->fetch_assoc()) {
+            $_SESSION['complaint_error'] = "Only your pending complaints can be updated.";
+        } else {
+            // UPDATE: change the resident's pending complaint.
             $stmt = $conn->prepare(
-                "INSERT INTO complaints (user_id, complaint_type, complaint_subject, complaint_text)
-                 VALUES (?, ?, ?, ?)"
+                "UPDATE complaints SET complaint_type = ?, complaint_subject = ?, complaint_text = ?
+                 WHERE id = ? AND user_id = ? AND states = 'pending'"
             );
-            $stmt->bind_param("isss", $user_id, $type, $subject, $description);
+            $stmt->bind_param("sssii", $type, $subject, $description, $complaint_id, $user_id);
             if ($stmt->execute()) {
-                $_SESSION['complaint_message'] = "Complaint submitted successfully!";
+                $_SESSION['complaint_message'] = "Complaint updated successfully.";
             } else {
-                $_SESSION['complaint_error'] = "Error submitting complaint.";
+                $_SESSION['complaint_error'] = "Error updating complaint.";
             }
+        }
+    } elseif ($action === 'create') {
+        // CREATE: submit a new complaint.
+        $stmt = $conn->prepare(
+            "INSERT INTO complaints (user_id, complaint_type, complaint_subject, complaint_text)
+             VALUES (?, ?, ?, ?)"
+        );
+        $stmt->bind_param("isss", $user_id, $type, $subject, $description);
+        if ($stmt->execute()) {
+            $_SESSION['complaint_message'] = "Complaint submitted successfully!";
+        } else {
+            $_SESSION['complaint_error'] = "Error submitting complaint.";
+        }
     } else {
         $_SESSION['complaint_error'] = "Invalid complaint action.";
     }
@@ -89,9 +93,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['edit_complaint'])) {
     $edit_complaint = $edit_stmt->get_result()->fetch_assoc() ?: null;
 }
 
- $user_id = $_SESSION['user_id'];
+$user_id = $_SESSION['user_id'];
 
-// Read only the logged-in resident's complaint rows so they cannot see other residents' issues.
+// READ: load only the current resident's complaints.
 $stmt = $conn->prepare(
     "SELECT *
      FROM complaints

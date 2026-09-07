@@ -28,6 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
     $new_status   = $_POST['status'] ?? '';
 
     if ($complaint_id > 0 && in_array($new_status, $allowed_statuses, true)) {
+        // UPDATE: change the complaint status.
         $update_stmt = $conn->prepare("UPDATE complaints SET states = ? WHERE id = ?");
         $update_stmt->bind_param("si", $new_status, $complaint_id);
         if ($update_stmt->execute() && $update_stmt->affected_rows === 1) {
@@ -46,6 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
 
 // Join residents so the admin can identify each complaint.
 $complaints = [];
+// READ: load all complaints with their resident usernames.
 $fetch_stmt = $conn->prepare(
     "SELECT c.id, c.complaint_type, c.complaint_subject, c.complaint_text, c.states, c.created_at,
             u.username

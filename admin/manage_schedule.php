@@ -29,6 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $area        = trim($_POST['area'] ?? '');
 
     if ($action === 'delete' && $schedule_id > 0) {
+        // DELETE: remove the selected schedule.
         $stmt = $conn->prepare("DELETE FROM pickup_schedule WHERE id = ?");
         $stmt->bind_param("i", $schedule_id);
         if ($stmt->execute() && $stmt->affected_rows === 1) {
@@ -45,6 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif (strlen($waste_type) > 50 || strlen($area) > 100) {
             $_SESSION['schedule_error'] = "Waste type or area is too long.";
         } elseif ($action === 'update' && $schedule_id > 0) {
+            // UPDATE: change the selected schedule.
             $stmt = $conn->prepare("UPDATE pickup_schedule SET pickup_date = ?, waste_type = ?, area = ? WHERE id = ?");
             $stmt->bind_param("sssi", $pickup_date, $waste_type, $area, $schedule_id);
             if ($stmt->execute()) {
@@ -53,6 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['schedule_error'] = "Error updating schedule. Please try again.";
             }
         } elseif ($action === 'create') {
+            // CREATE: add a new schedule.
             $stmt = $conn->prepare("INSERT INTO pickup_schedule (pickup_date, waste_type, area) VALUES (?, ?, ?)");
             $stmt->bind_param("sss", $pickup_date, $waste_type, $area);
             if ($stmt->execute()) {
@@ -72,6 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['edit_schedule'])) {
     $edit_schedule_id = (int) $_GET['edit_schedule'];
     if ($edit_schedule_id > 0) {
+        // READ: load one schedule into the edit form.
         $edit_stmt = $conn->prepare("SELECT id, pickup_date, waste_type, area FROM pickup_schedule WHERE id = ?");
         $edit_stmt->bind_param("i", $edit_schedule_id);
         $edit_stmt->execute();
@@ -79,6 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['edit_schedule'])) {
     }
 }
 
+// READ: load all schedules for the table.
 $stmt = $conn->prepare("SELECT * FROM pickup_schedule ORDER BY pickup_date ASC");
 $stmt->execute();
 $schedules = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);

@@ -36,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $notes       = isset($_POST['notes']) ? trim($_POST['notes']) : '';
 
     if ($action === 'delete' && $request_id > 0) {
+        // DELETE: remove only the resident's pending request.
         $delete_stmt = $conn->prepare("DELETE FROM pickup_requests WHERE id = ? AND user_id = ? AND states = 'pending'");
         $delete_stmt->bind_param("ii", $request_id, $user_id);
         if ($delete_stmt->execute() && $delete_stmt->affected_rows === 1) {
@@ -74,13 +75,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (strlen($notes) > 10000) {
                         $_SESSION['pickup_error'] = "Notes are too long.";
                     } elseif ($action === 'update' && $request_id > 0) {
-                                        $exists_stmt = $conn->prepare("SELECT id FROM pickup_requests WHERE id = ? AND user_id = ? AND states = 'pending'");
-                                        $exists_stmt->bind_param("ii", $request_id, $user_id);
-                                        $exists_stmt->execute();
+                        // READ: confirm that the resident owns a pending request.
+                        $exists_stmt = $conn->prepare("SELECT id FROM pickup_requests WHERE id = ? AND user_id = ? AND states = 'pending'");
+                        $exists_stmt->bind_param("ii", $request_id, $user_id);
+                        $exists_stmt->execute();
 
-                                        if (!$exists_stmt->get_result()->fetch_assoc()) {
-                                            $_SESSION['pickup_error'] = "Only your pending pickup requests can be updated.";
-                                        } else {
+                        if (!$exists_stmt->get_result()->fetch_assoc()) {
+                            $_SESSION['pickup_error'] = "Only your pending pickup requests can be updated.";
+                        } else {
+                            // UPDATE: change the resident's pending request.
                         $update_stmt = $conn->prepare(
                             "UPDATE pickup_requests SET waste_type = ?, pickup_date = ?, time_slot = ?, notes = ?
                              WHERE id = ? AND user_id = ? AND states = 'pending'"
@@ -91,8 +94,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         } else {
                             $_SESSION['pickup_error'] = "Error updating pickup request.";
                         }
-                                        }
+                        }
                     } elseif ($action === 'create') {
+                        // CREATE: submit a new pickup request.
                         $insert_stmt = $conn->prepare(
                             "INSERT INTO pickup_requests (user_id, waste_type, pickup_date, time_slot, notes)
                              VALUES (?, ?, ?, ?, ?)"
@@ -128,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['edit_request'])) {
     $edit_request = $edit_stmt->get_result()->fetch_assoc() ?: null;
 }
 
-// Residents can only read their own requests.
+// READ: load only the current resident's requests.
 $user_id = $_SESSION['user_id'];
 
 $select_stmt = $conn->prepare(

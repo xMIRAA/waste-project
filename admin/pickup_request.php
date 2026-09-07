@@ -28,6 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
     $new_status = $_POST['status'] ?? '';
 
     if ($request_id > 0 && in_array($new_status, $allowed_statuses, true)) {
+        // UPDATE: change the request status.
         $update_stmt = $conn->prepare("UPDATE pickup_requests SET states = ? WHERE id = ?");
           $update_stmt->bind_param("si", $new_status, $request_id);
           if ($update_stmt->execute() && $update_stmt->affected_rows === 1) {
@@ -45,6 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
 
 // Join residents so the admin can identify each request.
 $requests = [];
+// READ: load all pickup requests with their resident usernames.
 $fetch_stmt = $conn->prepare(
     "SELECT pr.id, pr.waste_type, pr.pickup_date, pr.time_slot, pr.notes, pr.states, pr.created_at,
             u.username
