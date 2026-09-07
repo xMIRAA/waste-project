@@ -25,17 +25,14 @@ if (!empty($_SESSION['complaint_error'])) {
 // Create, update, or delete only the current resident's pending complaints.
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    if (!valid_csrf_token()) {
-        $_SESSION['complaint_error'] = "Invalid form submission. Please try again.";
-    } else {
-        $action = $_POST['action'] ?? 'create';
-        $complaint_id = (int) ($_POST['complaint_id'] ?? 0);
-        $user_id = (int) $_SESSION['user_id'];
-        $type = trim($_POST['type'] ?? '');
-        $subject = trim($_POST['subject'] ?? '');
-        $description = trim($_POST['description'] ?? '');
+    $action = $_POST['action'] ?? 'create';
+    $complaint_id = (int) ($_POST['complaint_id'] ?? 0);
+    $user_id = (int) $_SESSION['user_id'];
+    $type = trim($_POST['type'] ?? '');
+    $subject = trim($_POST['subject'] ?? '');
+    $description = trim($_POST['description'] ?? '');
 
-        if ($action === 'delete' && $complaint_id > 0) {
+    if ($action === 'delete' && $complaint_id > 0) {
             $stmt = $conn->prepare("DELETE FROM complaints WHERE id = ? AND user_id = ? AND states = 'pending'");
             $stmt->bind_param("ii", $complaint_id, $user_id);
             if ($stmt->execute() && $stmt->affected_rows === 1) {
@@ -43,11 +40,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $_SESSION['complaint_error'] = "Only your pending complaints can be deleted.";
             }
-        } elseif (!in_array($type, $allowed_types, true) || $subject === '' || $description === '') {
+    } elseif (!in_array($type, $allowed_types, true) || $subject === '' || $description === '') {
             $_SESSION['complaint_error'] = "Complaint type, subject, and description are required.";
-        } elseif (strlen($subject) > 150 || strlen($description) > 10000) {
+    } elseif (strlen($subject) > 150 || strlen($description) > 10000) {
             $_SESSION['complaint_error'] = "The complaint subject or description is too long.";
-        } elseif ($action === 'update' && $complaint_id > 0) {
+    } elseif ($action === 'update' && $complaint_id > 0) {
             $exists_stmt = $conn->prepare("SELECT id FROM complaints WHERE id = ? AND user_id = ? AND states = 'pending'");
             $exists_stmt->bind_param("ii", $complaint_id, $user_id);
             $exists_stmt->execute();
@@ -66,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['complaint_error'] = "Error updating complaint.";
                 }
             }
-        } elseif ($action === 'create') {
+    } elseif ($action === 'create') {
             $stmt = $conn->prepare(
                 "INSERT INTO complaints (user_id, complaint_type, complaint_subject, complaint_text)
                  VALUES (?, ?, ?, ?)"
@@ -77,11 +74,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $_SESSION['complaint_error'] = "Error submitting complaint.";
             }
-        } else {
-            $_SESSION['complaint_error'] = "Invalid complaint action.";
-        }
+    } else {
+        $_SESSION['complaint_error'] = "Invalid complaint action.";
     }
-
     header("Location: " . $_SERVER['PHP_SELF']);
     exit;
 }
@@ -153,7 +148,6 @@ $complaints = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                 <h3><?php echo $edit_complaint ? 'Edit Complaint' : 'Complaint Form'; ?></h3>
 
                 <form  method="POST">
-                    <?php echo csrf_field(); ?>
                     <input type="hidden" name="action" value="<?php echo $edit_complaint ? 'update' : 'create'; ?>">
                     <?php if ($edit_complaint): ?>
                         <input type="hidden" name="complaint_id" value="<?php echo (int) $edit_complaint['id']; ?>">
@@ -276,7 +270,6 @@ $complaints = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         <?php if ($row['states'] === 'pending'): ?>
             <a href="?edit_complaint=<?php echo (int) $row['id']; ?>">Edit</a>
             <form method="POST" style="display:inline;" onsubmit="return confirm('Delete this complaint?');">
-                <?php echo csrf_field(); ?>
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="complaint_id" value="<?php echo (int) $row['id']; ?>">
                 <button type="submit">Delete</button>

@@ -42,12 +42,6 @@ if (!empty($_SESSION['update_user_error'])) {
     unset($_SESSION['update_user_error']);
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !valid_csrf_token()) {
-    $_SESSION['update_user_error'] = "Invalid form submission. Please try again.";
-    header("Location: " . $_SERVER['PHP_SELF']);
-    exit;
-}
-
 // Update a selected account without exposing its stored password hash.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_user_submit'])) {
     $update_user_id = (int) ($_POST['user_id'] ?? 0);
@@ -302,8 +296,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['edit_user'])) {
         <?php endif; ?>
 
         <form class="waste-form" action="" method="POST">
-              <?php echo csrf_field(); ?>
-
             <div class="form-group">
                 <label for="username">Username</label>
                 <input type="text" id="username" name="username" placeholder="e.g. janedoe" required>
@@ -386,7 +378,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['edit_user'])) {
         <p class="form-subtitle">Update the selected user's account details.</p>
 
         <form class="waste-form" action="" method="POST">
-              <?php echo csrf_field(); ?>
             <input type="hidden" name="user_id" value="<?php echo (int) $edit_user['id']; ?>">
 
             <div class="form-group">
@@ -473,7 +464,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['edit_user'])) {
                               <a href="?edit_user=<?php echo (int) $user['id']; ?>" class="edit-user-button">Edit</a>
                               <?php if ((int) $user['id'] !== (int) $_SESSION['user_id']): ?>
                                   <form action="" method="POST" onsubmit="return confirm('Delete this user account? Related requests and complaints will also be deleted.');">
-                                       <?php echo csrf_field(); ?>
                                       <input type="hidden" name="user_id" value="<?php echo (int) $user['id']; ?>">
                                       <button type="submit" name="delete_user_submit" value="1" class="delete-user-button">Delete</button>
                                   </form>
@@ -534,7 +524,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['edit_user'])) {
                               <a href="?edit_user=<?php echo (int) $user['id']; ?>" class="edit-user-button">Edit</a>
                               <?php if ((int) $user['id'] !== (int) $_SESSION['user_id']): ?>
                                   <form action="" method="POST" onsubmit="return confirm('Delete this user account? Related requests and complaints will also be deleted.');">
-                                       <?php echo csrf_field(); ?>
                                       <input type="hidden" name="user_id" value="<?php echo (int) $user['id']; ?>">
                                       <button type="submit" name="delete_user_submit" value="1" class="delete-user-button">Delete</button>
                                   </form>

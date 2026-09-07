@@ -25,12 +25,6 @@ if (!empty($_SESSION['pickup_message'])) {
 /* Handle pickup request CRUD submissions */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    if (!valid_csrf_token()) {
-        $_SESSION['pickup_error'] = "Invalid form submission. Please try again.";
-        header("Location: " . $_SERVER['PHP_SELF']);
-        exit;
-    }
-
     $user_id     = (int) $_SESSION['user_id'];
     $action      = $_POST['action'] ?? 'create';
     $request_id  = (int) ($_POST['request_id'] ?? 0);
@@ -187,7 +181,6 @@ $pickup_requests = $select_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             <h2>Pickup Request Form</h2>
 
             <form method="POST">
-                <?php echo csrf_field(); ?>
                 <input type="hidden" name="action" value="<?php echo $edit_request ? 'update' : 'create'; ?>">
                 <?php if ($edit_request): ?>
                     <input type="hidden" name="request_id" value="<?php echo (int) $edit_request['id']; ?>">
@@ -305,7 +298,6 @@ $pickup_requests = $select_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                         <?php if ($row['states'] === 'pending'): ?>
                             <a href="?edit_request=<?php echo (int) $row['id']; ?>">Edit</a>
                             <form method="POST" style="display:inline;" onsubmit="return confirm('Delete this pickup request?');">
-                                <?php echo csrf_field(); ?>
                                 <input type="hidden" name="action" value="delete">
                                 <input type="hidden" name="request_id" value="<?php echo (int) $row['id']; ?>">
                                 <button type="submit">Delete</button>

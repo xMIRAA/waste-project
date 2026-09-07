@@ -27,9 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
     $complaint_id = (int) ($_POST['complaint_id'] ?? 0);
     $new_status   = $_POST['status'] ?? '';
 
-    if (!valid_csrf_token()) {
-        $_SESSION['status_error'] = "Invalid form submission. Please try again.";
-    } elseif ($complaint_id > 0 && in_array($new_status, $allowed_statuses, true)) {
+    if ($complaint_id > 0 && in_array($new_status, $allowed_statuses, true)) {
         $update_stmt = $conn->prepare("UPDATE complaints SET states = ? WHERE id = ?");
         $update_stmt->bind_param("si", $new_status, $complaint_id);
         if ($update_stmt->execute() && $update_stmt->affected_rows === 1) {
@@ -124,7 +122,6 @@ if ($fetch_stmt) {
                         <td><?php echo date('d M Y', strtotime($c['created_at'])); ?></td>
                         <td class="update-cell">
                             <form method="POST" class="status-update-form">
-                                <?php echo csrf_field(); ?>
                                 <input type="hidden" name="complaint_id" value="<?php echo (int) $c['id']; ?>">
                                 <select name="status">
                                     <option value="pending" <?php echo $c['states'] === 'pending' ? 'selected' : ''; ?>>Pending</option>

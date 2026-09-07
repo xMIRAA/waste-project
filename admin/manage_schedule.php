@@ -23,12 +23,6 @@ if (!empty($_SESSION['schedule_error'])) {
 
 /* Handle schedule CRUD form submissions */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!valid_csrf_token()) {
-        $_SESSION['schedule_error'] = "Invalid form submission. Please try again.";
-        header("Location: " . $_SERVER['PHP_SELF']);
-        exit;
-    }
-
     $action      = $_POST['action'] ?? 'create';
     $schedule_id = (int) ($_POST['schedule_id'] ?? 0);
     $pickup_date = trim($_POST['pickup_date'] ?? '');
@@ -122,7 +116,6 @@ $schedules = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
           <?php endif; ?>
 
           <form action="manage_schedule.php" method="POST" class="waste-form">
-              <?php echo csrf_field(); ?>
               <input type="hidden" name="action" value="<?php echo $edit_schedule ? 'update' : 'create'; ?>">
               <?php if ($edit_schedule): ?>
                   <input type="hidden" name="schedule_id" value="<?php echo (int) $edit_schedule['id']; ?>">
@@ -180,7 +173,6 @@ $schedules = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                     <td class="schedule-actions">
                         <a href="?edit_schedule=<?php echo (int) $row['id']; ?>" class="edit-schedule-button">Edit</a>
                         <form action="manage_schedule.php" method="POST" class="delete-form" onsubmit="return confirm('Delete this pickup schedule?');">
-                            <?php echo csrf_field(); ?>
                             <input type="hidden" name="action" value="delete">
                             <input type="hidden" name="schedule_id" value="<?php echo (int) $row['id']; ?>">
                             <button type="submit" class="delete-schedule-button">Delete</button>
