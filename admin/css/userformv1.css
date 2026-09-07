@@ -146,6 +146,26 @@
     margin-bottom: 16px;
 }
 
+.delete-user-button {
+    padding: 8px 12px;
+    border: 0;
+    border-radius: 6px;
+    background-color: #b42318;
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.delete-user-button:hover {
+    background-color: #8f1d14;
+}
+
+.current-user-label {
+    color: #5f5e5a;
+    font-size: 12px;
+}
+
 .success-alert {
     background-color: #e1f5ee;
     color: #085041;

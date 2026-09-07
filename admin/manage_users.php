@@ -22,6 +22,8 @@ $active_page = 'users';
 // Store success or error messages for the add-user form after redirecting back to the page.
 $add_user_message = '';
 $add_user_error   = '';
+$delete_user_message = '';
+$delete_user_error   = '';
 
 if (!empty($_SESSION['add_user_message'])) {
     $add_user_message = $_SESSION['add_user_message'];
@@ -30,6 +32,42 @@ if (!empty($_SESSION['add_user_message'])) {
 if (!empty($_SESSION['add_user_error'])) {
     $add_user_error = $_SESSION['add_user_error'];
     unset($_SESSION['add_user_error']);
+}
+if (!empty($_SESSION['delete_user_message'])) {
+    $delete_user_message = $_SESSION['delete_user_message'];
+    unset($_SESSION['delete_user_message']);
+}
+if (!empty($_SESSION['delete_user_error'])) {
+    $delete_user_error = $_SESSION['delete_user_error'];
+    unset($_SESSION['delete_user_error']);
+}
+
+// If the admin submits a delete form, remove the selected account and its related records.
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user_submit'])) {
+    $delete_user_id = (int) ($_POST['user_id'] ?? 0);
+
+    if ($delete_user_id <= 0) {
+        $_SESSION['delete_user_error'] = "Invalid user selected.";
+    } elseif ($delete_user_id === (int) $_SESSION['user_id']) {
+        $_SESSION['delete_user_error'] = "You cannot delete the account currently in use.";
+    } else {
+        $delete_stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
+
+        if ($delete_stmt) {
+            $delete_stmt->bind_param("i", $delete_user_id);
+
+            if ($delete_stmt->execute() && $delete_stmt->affected_rows === 1) {
+                $_SESSION['delete_user_message'] = "User account deleted successfully.";
+            } else {
+                $_SESSION['delete_user_error'] = "User account not found or could not be deleted.";
+            }
+        } else {
+            $_SESSION['delete_user_error'] = "Unable to delete the user account right now.";
+        }
+    }
+
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit;
 }
 
 // If the admin submits the add-user form, validate and insert the new account.
@@ -183,6 +221,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
         <?php if (!empty($add_user_error)): ?>
             <div class="alert error-alert"><?php echo htmlspecialchars($add_user_error); ?></div>
         <?php endif; ?>
+        <?php if (!empty($delete_user_message)): ?>
+            <div class="alert success-alert"><?php echo htmlspecialchars($delete_user_message); ?></div>
+        <?php endif; ?>
+        <?php if (!empty($delete_user_error)): ?>
+            <div class="alert error-alert"><?php echo htmlspecialchars($delete_user_error); ?></div>
+        <?php endif; ?>
 
         <form class="waste-form" action="" method="POST">
 
@@ -282,6 +326,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
                       <th>Contact</th>
                       <th>Address</th>
                       <th>Created Date</th>
+                      <th>Action</th>
                   </tr>
               </thead>
               <tbody>
@@ -293,6 +338,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
                           <td><?php echo htmlspecialchars($user['contact']); ?></td>
                           <td><?php echo htmlspecialchars($user['address']); ?></td>
                           <td><?php echo date('d M Y', strtotime($user['created_at'])); ?></td>
+                          <td>
+                              <?php if ((int) $user['id'] !== (int) $_SESSION['user_id']): ?>
+                                  <form action="" method="POST" onsubmit="return confirm('Delete this user account? Related requests and complaints will also be deleted.');">
+                                      <input type="hidden" name="user_id" value="<?php echo (int) $user['id']; ?>">
+                                      <button type="submit" name="delete_user_submit" value="1" class="delete-user-button">Delete</button>
+                                  </form>
+                              <?php else: ?>
+                                  <span class="current-user-label">Current account</span>
+                              <?php endif; ?>
+                          </td>
                       </tr>
                   <?php endforeach; ?>
               </tbody>
@@ -330,6 +385,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
                       <th>Contact</th>
                       <th>Address</th>
                       <th>Created Date</th>
+                      <th>Action</th>
                   </tr>
               </thead>
               <tbody>
@@ -341,6 +397,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
                           <td><?php echo htmlspecialchars($user['contact']); ?></td>
                           <td><?php echo htmlspecialchars($user['address']); ?></td>
                           <td><?php echo date('d M Y', strtotime($user['created_at'])); ?></td>
+                          <td>
+                              <?php if ((int) $user['id'] !== (int) $_SESSION['user_id']): ?>
+                                  <form action="" method="POST" onsubmit="return confirm('Delete this user account? Related requests and complaints will also be deleted.');">
+                                      <input type="hidden" name="user_id" value="<?php echo (int) $user['id']; ?>">
+                                      <button type="submit" name="delete_user_submit" value="1" class="delete-user-button">Delete</button>
+                                  </form>
+                              <?php else: ?>
+                                  <span class="current-user-label">Current account</span>
+                              <?php endif; ?>
+                          </td>
                       </tr>
                   <?php endforeach; ?>
               </tbody>
