@@ -194,9 +194,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_user_submit'])) {
 
 // Load all accounts for the main user table.
 $users = [];
-$users_result = $conn->query("SELECT id, username, role, name, address, contact, created_at FROM users ORDER BY created_at DESC");
-if ($users_result) {
-    $users = $users_result->fetch_all(MYSQLI_ASSOC);
+$users_stmt = $conn->prepare(
+    "SELECT id, username, role, name, address, contact, created_at
+     FROM users
+     ORDER BY created_at DESC"
+);
+if ($users_stmt && $users_stmt->execute()) {
+    $users = $users_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 }
 
 // Whitelist searchable columns so input cannot become a SQL identifier.
