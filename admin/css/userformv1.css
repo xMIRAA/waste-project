@@ -157,6 +157,51 @@
     font-weight: 600;
 }
 
+.user-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.edit-user-button,
+.cancel-edit-button {
+    display: inline-block;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.edit-user-button {
+    background-color: #1d9e75;
+    color: #ffffff;
+}
+
+.edit-user-button:hover {
+    background-color: #188663;
+}
+
+.edit-user-wrapper {
+    margin-top: 24px;
+}
+
+.edit-user-card {
+    max-width: 520px;
+}
+
+.edit-form-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cancel-edit-button {
+    background-color: #e2e0d6;
+    color: #04342c;
+}
+
 .delete-user-button:hover {
     background-color: #8f1d14;
 }

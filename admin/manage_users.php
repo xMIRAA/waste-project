@@ -24,6 +24,9 @@ $add_user_message = '';
 $add_user_error   = '';
 $delete_user_message = '';
 $delete_user_error   = '';
+$update_user_message = '';
+$update_user_error   = '';
+$edit_user = null;
 
 if (!empty($_SESSION['add_user_message'])) {
     $add_user_message = $_SESSION['add_user_message'];
@@ -40,6 +43,82 @@ if (!empty($_SESSION['delete_user_message'])) {
 if (!empty($_SESSION['delete_user_error'])) {
     $delete_user_error = $_SESSION['delete_user_error'];
     unset($_SESSION['delete_user_error']);
+}
+if (!empty($_SESSION['update_user_message'])) {
+    $update_user_message = $_SESSION['update_user_message'];
+    unset($_SESSION['update_user_message']);
+}
+if (!empty($_SESSION['update_user_error'])) {
+    $update_user_error = $_SESSION['update_user_error'];
+    unset($_SESSION['update_user_error']);
+}
+
+// If the admin submits an edit form, validate and update the selected account.
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_user_submit'])) {
+    $update_user_id = (int) ($_POST['user_id'] ?? 0);
+    $username       = trim($_POST['username'] ?? '');
+    $password       = $_POST['password'] ?? '';
+    $role           = trim($_POST['role'] ?? '');
+    $name           = trim($_POST['name'] ?? '');
+    $contact        = trim($_POST['contact'] ?? '');
+    $address        = trim($_POST['address'] ?? '');
+    $allowed_roles  = ['admin', 'resident'];
+
+    if ($update_user_id <= 0) {
+        $_SESSION['update_user_error'] = "Invalid user selected.";
+    } elseif ($username === '' || $role === '' || $name === '' || $contact === '' || $address === '') {
+        $_SESSION['update_user_error'] = "Username, role, name, contact, and address are required.";
+    } elseif (strlen($username) > 50 || strlen($name) > 100 || strlen($address) > 255 || strlen($contact) > 20) {
+        $_SESSION['update_user_error'] = "One or more fields exceed the allowed length.";
+    } elseif (!in_array($role, $allowed_roles, true)) {
+        $_SESSION['update_user_error'] = "Invalid role selected. Please choose admin or resident.";
+    } elseif (!preg_match('/^[0-9+\-\s]{7,20}$/', $contact)) {
+        $_SESSION['update_user_error'] = "Please enter a valid contact number.";
+    } else {
+        $user_stmt = $conn->prepare("SELECT id, role FROM users WHERE id = ?");
+        $user_stmt->bind_param("i", $update_user_id);
+        $user_stmt->execute();
+        $user_row = $user_stmt->get_result()->fetch_assoc();
+
+        if (!$user_row) {
+            $_SESSION['update_user_error'] = "User account not found.";
+        } elseif ($update_user_id === (int) $_SESSION['user_id'] && $role !== 'admin') {
+            $_SESSION['update_user_error'] = "You cannot remove the admin role from the account currently in use.";
+        } else {
+            $duplicate_stmt = $conn->prepare("SELECT id FROM users WHERE username = ? AND id <> ?");
+            $duplicate_stmt->bind_param("si", $username, $update_user_id);
+            $duplicate_stmt->execute();
+
+            if ($duplicate_stmt->get_result()->fetch_assoc()) {
+                $_SESSION['update_user_error'] = "That username is already taken. Please choose a different username.";
+            } else {
+                if ($password !== '') {
+                    $password_hash = password_hash($password, PASSWORD_DEFAULT);
+                    $update_stmt = $conn->prepare(
+                        "UPDATE users SET username = ?, password = ?, role = ?, name = ?, address = ?, contact = ? WHERE id = ?"
+                    );
+                    $update_stmt->bind_param("ssssssi", $username, $password_hash, $role, $name, $address, $contact, $update_user_id);
+                } else {
+                    $update_stmt = $conn->prepare(
+                        "UPDATE users SET username = ?, role = ?, name = ?, address = ?, contact = ? WHERE id = ?"
+                    );
+                    $update_stmt->bind_param("sssssi", $username, $role, $name, $address, $contact, $update_user_id);
+                }
+
+                if ($update_stmt && $update_stmt->execute()) {
+                    if ($update_user_id === (int) $_SESSION['user_id']) {
+                        $_SESSION['username'] = $username;
+                    }
+                    $_SESSION['update_user_message'] = "User account updated successfully.";
+                } else {
+                    $_SESSION['update_user_error'] = "Error updating user account. Please try again.";
+                }
+            }
+        }
+    }
+
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit;
 }
 
 // If the admin submits a delete form, remove the selected account and its related records.
@@ -191,6 +270,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
         }
     }
 }
+
+// Load the selected account when the admin opens an edit form.
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['edit_user'])) {
+    $edit_user_id = (int) $_GET['edit_user'];
+    if ($edit_user_id > 0) {
+        $edit_stmt = $conn->prepare("SELECT id, username, role, name, address, contact FROM users WHERE id = ?");
+        $edit_stmt->bind_param("i", $edit_user_id);
+        $edit_stmt->execute();
+        $edit_user = $edit_stmt->get_result()->fetch_assoc() ?: null;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -305,6 +395,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
 
 </div>
 
+<?php if ($edit_user): ?>
+  <div class="form-card-wrapper edit-user-wrapper">
+    <div class="form-card edit-user-card">
+        <h1 class="form-title">Edit User Account</h1>
+        <p class="form-subtitle">Update the selected user's account details.</p>
+
+        <form class="waste-form" action="" method="POST">
+            <input type="hidden" name="user_id" value="<?php echo (int) $edit_user['id']; ?>">
+
+            <div class="form-group">
+                <label for="edit_username">Username</label>
+                <input type="text" id="edit_username" name="username" value="<?php echo htmlspecialchars($edit_user['username']); ?>" maxlength="50" required>
+            </div>
+
+            <div class="form-group">
+                <label for="edit_password">New Password</label>
+                <input type="password" id="edit_password" name="password" placeholder="Leave blank to keep current password">
+            </div>
+
+            <div class="form-group">
+                <label for="edit_role">Role</label>
+                <?php if ((int) $edit_user['id'] === (int) $_SESSION['user_id']): ?>
+                    <input type="hidden" name="role" value="admin">
+                    <input type="text" id="edit_role" value="Admin" readonly>
+                <?php else: ?>
+                    <select id="edit_role" name="role" required>
+                        <option value="resident" <?php echo $edit_user['role'] === 'resident' ? 'selected' : ''; ?>>Resident</option>
+                        <option value="admin" <?php echo $edit_user['role'] === 'admin' ? 'selected' : ''; ?>>Admin</option>
+                    </select>
+                <?php endif; ?>
+            </div>
+
+            <div class="form-group">
+                <label for="edit_name">Full Name</label>
+                <input type="text" id="edit_name" name="name" value="<?php echo htmlspecialchars($edit_user['name']); ?>" maxlength="100" required>
+            </div>
+
+            <div class="form-group">
+                <label for="edit_contact">Contact Phone</label>
+                <input type="tel" id="edit_contact" name="contact" value="<?php echo htmlspecialchars($edit_user['contact']); ?>" maxlength="20" pattern="[0-9+\-\s]{7,20}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="edit_address">Address</label>
+                <input type="text" id="edit_address" name="address" value="<?php echo htmlspecialchars($edit_user['address']); ?>" maxlength="255" required>
+            </div>
+
+            <div class="edit-form-actions">
+                <button type="submit" name="update_user_submit" value="1" class="btn-primary">Save Changes</button>
+                <a href="manage_users.php" class="cancel-edit-button">Cancel</a>
+            </div>
+        </form>
+    </div>
+  </div>
+<?php endif; ?>
+
 <!-- Table Section styled consistently with schedule.css -->
   <div class="user-schedule-section">
 
@@ -326,7 +472,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
                       <th>Contact</th>
                       <th>Address</th>
                       <th>Created Date</th>
-                      <th>Action</th>
+                      <th>Actions</th>
                   </tr>
               </thead>
               <tbody>
@@ -338,7 +484,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
                           <td><?php echo htmlspecialchars($user['contact']); ?></td>
                           <td><?php echo htmlspecialchars($user['address']); ?></td>
                           <td><?php echo date('d M Y', strtotime($user['created_at'])); ?></td>
-                          <td>
+                          <td class="user-actions">
+                              <a href="?edit_user=<?php echo (int) $user['id']; ?>" class="edit-user-button">Edit</a>
                               <?php if ((int) $user['id'] !== (int) $_SESSION['user_id']): ?>
                                   <form action="" method="POST" onsubmit="return confirm('Delete this user account? Related requests and complaints will also be deleted.');">
                                       <input type="hidden" name="user_id" value="<?php echo (int) $user['id']; ?>">
@@ -385,7 +532,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
                       <th>Contact</th>
                       <th>Address</th>
                       <th>Created Date</th>
-                      <th>Action</th>
+                      <th>Actions</th>
                   </tr>
               </thead>
               <tbody>
@@ -397,7 +544,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
                           <td><?php echo htmlspecialchars($user['contact']); ?></td>
                           <td><?php echo htmlspecialchars($user['address']); ?></td>
                           <td><?php echo date('d M Y', strtotime($user['created_at'])); ?></td>
-                          <td>
+                          <td class="user-actions">
+                              <a href="?edit_user=<?php echo (int) $user['id']; ?>" class="edit-user-button">Edit</a>
                               <?php if ((int) $user['id'] !== (int) $_SESSION['user_id']): ?>
                                   <form action="" method="POST" onsubmit="return confirm('Delete this user account? Related requests and complaints will also be deleted.');">
                                       <input type="hidden" name="user_id" value="<?php echo (int) $user['id']; ?>">
