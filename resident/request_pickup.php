@@ -1,108 +1,140 @@
 <?php
-// ------------------------------------------------------
-// request_pickup.php
-// Lets a resident submit a new pickup request and view their
-// own past requests and current status.
-// ------------------------------------------------------
 
 require_once __DIR__ . '/../config.php';
 
-// Protect this page so a resident must be logged in before submitting a request.
 require_once app_path('auth/auth_guard.php');
-// Load the database connection used for pickup insert and lookup queries.
 require_once app_path('database/db.php');
+requireResident();
 
 $active_page = 'request_pickup';
 
 $message   = '';
 $error     = '';
+$edit_request = null;
 
-/* Whitelisted option values — must match the <select> options below */
-// Restrict valid waste and time options to a safe allowlist so unexpected values are rejected.
+// These values must match the form options and database workflow.
 $allowed_waste_types = ['General Waste', 'Recyclables', 'Garden Waste', 'E-Waste'];
 $allowed_time_slots  = ['Morning (8 AM - 12 PM)', 'Afternoon (12 PM - 4 PM)', 'Evening (4 PM - 7 PM)'];
 
-/* Pick up any flash message left by a previous redirect (PRG pattern) */
-// Read the success message from the previous redirect so it is shown once after submit.
+// Read one-time feedback after a POST/redirect cycle.
 if (!empty($_SESSION['pickup_message'])) {
     $message = $_SESSION['pickup_message'];
     unset($_SESSION['pickup_message']);
 }
 
-/* Submit Pickup Request */
-// If the resident submits the form, validate the request before inserting it.
+/* Handle pickup request CRUD submissions */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $user_id     = $_SESSION['user_id'];
+    if (!valid_csrf_token()) {
+        $_SESSION['pickup_error'] = "Invalid form submission. Please try again.";
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit;
+    }
 
-    // Safely read POST fields (avoids "Undefined array key" warnings)
+    $user_id     = (int) $_SESSION['user_id'];
+    $action      = $_POST['action'] ?? 'create';
+    $request_id  = (int) ($_POST['request_id'] ?? 0);
+
+    // Use defaults so malformed requests fail validation cleanly.
     $waste_type  = isset($_POST['waste_type']) ? trim($_POST['waste_type']) : '';
     $pickup_date = isset($_POST['pickup_date']) ? trim($_POST['pickup_date']) : '';
     $time_slot   = isset($_POST['time_slot']) ? trim($_POST['time_slot']) : '';
     $notes       = isset($_POST['notes']) ? trim($_POST['notes']) : '';
 
-    // Validate waste type / time slot against the allowed lists
-    if (!in_array($waste_type, $allowed_waste_types, true)) {
-        $error = "Please select a valid waste type.";
+    if ($action === 'delete' && $request_id > 0) {
+        $delete_stmt = $conn->prepare("DELETE FROM pickup_requests WHERE id = ? AND user_id = ? AND states = 'pending'");
+        $delete_stmt->bind_param("ii", $request_id, $user_id);
+        if ($delete_stmt->execute() && $delete_stmt->affected_rows === 1) {
+            $_SESSION['pickup_message'] = "Pickup request deleted successfully.";
+        } else {
+            $_SESSION['pickup_error'] = "Only your pending pickup requests can be deleted.";
+        }
+    } elseif (!in_array($waste_type, $allowed_waste_types, true)) {
+        $_SESSION['pickup_error'] = "Please select a valid waste type.";
     } elseif (!in_array($time_slot, $allowed_time_slots, true)) {
-        $error = "Please select a valid time slot.";
+        $_SESSION['pickup_error'] = "Please select a valid time slot.";
     } else {
-        // Validate the date: must be a real date and at least 24 hours ahead
+        // Pickup dates must be real dates at least one day ahead.
         $date_obj = DateTime::createFromFormat('Y-m-d', $pickup_date);
         $today    = new DateTime('today');
 
         if (!$date_obj || $date_obj->format('Y-m-d') !== $pickup_date) {
-            $error = "Please provide a valid pickup date.";
+            $_SESSION['pickup_error'] = "Please provide a valid pickup date.";
         } else {
             $min_date = (clone $today)->modify('+1 day');
             if ($date_obj < $min_date) {
-                $error = "Pickup requests must be made at least 24 hours in advance.";
+                $_SESSION['pickup_error'] = "Pickup requests must be made at least 24 hours in advance.";
             } else {
-                // Enforce "one pickup request per day" per user so residents cannot flood the system with duplicate requests.
+                // Keep one request per resident and date.
                 $check = $conn->prepare(
                     "SELECT COUNT(*) AS cnt FROM pickup_requests
-                     WHERE user_id = ? AND pickup_date = ?"
+                    WHERE user_id = ? AND pickup_date = ? AND id <> ?"
                 );
-                $check->bind_param("is", $user_id, $pickup_date);
+                $check->bind_param("isi", $user_id, $pickup_date, $request_id);
                 $check->execute();
                 $count_row = $check->get_result()->fetch_assoc();
 
                 if ($count_row['cnt'] > 0) {
-                    $error = "You already have a pickup request for that date. Only one request per day is allowed.";
+                    $_SESSION['pickup_error'] = "You already have a pickup request for that date. Only one request per day is allowed.";
                 } else {
-                    // Insert the resident's request with a record tied to their own user_id only.
-                    $insert_stmt = $conn->prepare(
-                        "INSERT INTO pickup_requests
-                        (user_id, waste_type, pickup_date, time_slot, notes)
-                        VALUES (?, ?, ?, ?, ?)"
-                    );
+                    if (strlen($notes) > 10000) {
+                        $_SESSION['pickup_error'] = "Notes are too long.";
+                    } elseif ($action === 'update' && $request_id > 0) {
+                                        $exists_stmt = $conn->prepare("SELECT id FROM pickup_requests WHERE id = ? AND user_id = ? AND states = 'pending'");
+                                        $exists_stmt->bind_param("ii", $request_id, $user_id);
+                                        $exists_stmt->execute();
 
-                    $insert_stmt->bind_param(
-                        "issss",
-                        $user_id,
-                        $waste_type,
-                        $pickup_date,
-                        $time_slot,
-                        $notes
-                    );
-
-                    if ($insert_stmt->execute()) {
-                        $_SESSION['pickup_message'] = "Pickup request submitted successfully!";
+                                        if (!$exists_stmt->get_result()->fetch_assoc()) {
+                                            $_SESSION['pickup_error'] = "Only your pending pickup requests can be updated.";
+                                        } else {
+                        $update_stmt = $conn->prepare(
+                            "UPDATE pickup_requests SET waste_type = ?, pickup_date = ?, time_slot = ?, notes = ?
+                             WHERE id = ? AND user_id = ? AND states = 'pending'"
+                        );
+                        $update_stmt->bind_param("ssssii", $waste_type, $pickup_date, $time_slot, $notes, $request_id, $user_id);
+                        if ($update_stmt->execute()) {
+                            $_SESSION['pickup_message'] = "Pickup request updated successfully!";
+                        } else {
+                            $_SESSION['pickup_error'] = "Error updating pickup request.";
+                        }
+                                        }
+                    } elseif ($action === 'create') {
+                        $insert_stmt = $conn->prepare(
+                            "INSERT INTO pickup_requests (user_id, waste_type, pickup_date, time_slot, notes)
+                             VALUES (?, ?, ?, ?, ?)"
+                        );
+                        $insert_stmt->bind_param("issss", $user_id, $waste_type, $pickup_date, $time_slot, $notes);
+                        if ($insert_stmt->execute()) {
+                            $_SESSION['pickup_message'] = "Pickup request submitted successfully!";
+                        } else {
+                            $_SESSION['pickup_message'] = "Error submitting request. Please try again.";
+                        }
                     } else {
-                        $_SESSION['pickup_message'] = "Error submitting request. Please try again.";
+                        $_SESSION['pickup_error'] = "Invalid pickup request action.";
                     }
-
-                    // Redirect (Post/Redirect/Get) so refreshing the page does not resubmit the form.
-                    header("Location: " . $_SERVER['PHP_SELF']);
-                    // Stop immediately so no extra code runs after the redirect.
-                    exit;
                 }
             }
         }
     }
+
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit;
 }
 
-// Only show rows linked to the current resident's user_id so they can see their own requests.
+if (!empty($_SESSION['pickup_error'])) {
+    $error = $_SESSION['pickup_error'];
+    unset($_SESSION['pickup_error']);
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['edit_request'])) {
+    $edit_id = (int) $_GET['edit_request'];
+    $edit_stmt = $conn->prepare("SELECT id, waste_type, pickup_date, time_slot, notes FROM pickup_requests WHERE id = ? AND user_id = ? AND states = 'pending'");
+    $edit_stmt->bind_param("ii", $edit_id, $_SESSION['user_id']);
+    $edit_stmt->execute();
+    $edit_request = $edit_stmt->get_result()->fetch_assoc() ?: null;
+}
+
+// Residents can only read their own requests.
 $user_id = $_SESSION['user_id'];
 
 $select_stmt = $conn->prepare(
@@ -132,7 +164,7 @@ $pickup_requests = $select_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 <div class="page-content">
 
-    <center><h1>Request Pickup</h1>
+    <center><h1><?php echo $edit_request ? 'Edit Pickup Request' : 'Request Pickup'; ?></h1>
     <?php if (!empty($message)) { ?>
     <p style="color:green;font-weight:bold;">
         <?php echo htmlspecialchars($message); ?>
@@ -155,28 +187,32 @@ $pickup_requests = $select_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             <h2>Pickup Request Form</h2>
 
             <form method="POST">
+                <?php echo csrf_field(); ?>
+                <input type="hidden" name="action" value="<?php echo $edit_request ? 'update' : 'create'; ?>">
+                <?php if ($edit_request): ?>
+                    <input type="hidden" name="request_id" value="<?php echo (int) $edit_request['id']; ?>">
+                <?php endif; ?>
 
                 <label>Waste Type</label>
 
                 <select name="waste_type" required>
                     <option value="">Select Waste Type</option>
-                    <option>General Waste</option>
-                    <option>Recyclables</option>
-                    <option>Garden Waste</option>
-                    <option>E-Waste</option>
+                    <?php foreach ($allowed_waste_types as $waste_option): ?>
+                        <option <?php echo ($edit_request['waste_type'] ?? '') === $waste_option ? 'selected' : ''; ?>><?php echo htmlspecialchars($waste_option); ?></option>
+                    <?php endforeach; ?>
                 </select>
 
                 <label>Preferred Pickup Date</label>
 
-                <input type="date" name="pickup_date" required min="<?php echo date('Y-m-d', strtotime('+1 day')); ?>">
+                <input type="date" name="pickup_date" value="<?php echo htmlspecialchars($edit_request['pickup_date'] ?? ''); ?>" required min="<?php echo date('Y-m-d', strtotime('+1 day')); ?>">
 
                 <label>Preferred Time</label>
 
                 <select name="time_slot" required>
                     <option value="">Select Time</option>
-                    <option>Morning (8 AM - 12 PM)</option>
-                    <option>Afternoon (12 PM - 4 PM)</option>
-                    <option>Evening (4 PM - 7 PM)</option>
+                    <?php foreach ($allowed_time_slots as $time_option): ?>
+                        <option <?php echo ($edit_request['time_slot'] ?? '') === $time_option ? 'selected' : ''; ?>><?php echo htmlspecialchars($time_option); ?></option>
+                    <?php endforeach; ?>
                 </select>
 
                 <label>Additional Notes</label>
@@ -184,12 +220,16 @@ $pickup_requests = $select_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                 <textarea
                     name="notes"
                     rows="5"
+                    maxlength="10000"
                     placeholder="Enter additional information (optional)"
-                ></textarea>
+                ><?php echo htmlspecialchars($edit_request['notes'] ?? ''); ?></textarea>
 
                 <button type="submit" class="btn-primary">
-                    Submit Request
+                    <?php echo $edit_request ? 'Save Changes' : 'Submit Request'; ?>
                 </button>
+                <?php if ($edit_request): ?>
+                    <a href="request_pickup.php">Cancel</a>
+                <?php endif; ?>
 
             </form>
 
@@ -228,6 +268,7 @@ $pickup_requests = $select_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                     <th>Time Slot</th>
                     <th>Status</th>
                     <th>Requested On</th>
+                    <th>Actions</th>
                 </tr>
 
             </thead>
@@ -235,7 +276,7 @@ $pickup_requests = $select_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
             <?php if (empty($pickup_requests)) { ?>
                 <tr>
-                    <td colspan="6" style="text-align:center;">No pickup requests yet.</td>
+                    <td colspan="7" style="text-align:center;">No pickup requests yet.</td>
                 </tr>
             <?php } ?>
 
@@ -260,6 +301,17 @@ $pickup_requests = $select_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                     </td>
 
                     <td><?php echo date('d M Y', strtotime($row['created_at'])); ?></td>
+                    <td>
+                        <?php if ($row['states'] === 'pending'): ?>
+                            <a href="?edit_request=<?php echo (int) $row['id']; ?>">Edit</a>
+                            <form method="POST" style="display:inline;" onsubmit="return confirm('Delete this pickup request?');">
+                                <?php echo csrf_field(); ?>
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="request_id" value="<?php echo (int) $row['id']; ?>">
+                                <button type="submit">Delete</button>
+                            </form>
+                        <?php endif; ?>
+                    </td>
 
                 </tr>
 

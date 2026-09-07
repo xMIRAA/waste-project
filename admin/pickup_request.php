@@ -1,18 +1,10 @@
 <?php
-// ------------------------------------------------------
-// pickup_request.php
-// Shows all resident pickup requests and lets the admin
-// change each request from pending to done or declined.
-// ------------------------------------------------------
 
 require_once __DIR__ . '/../config.php';
 
-// Protect the page so only logged-in admins can manage requests.
 require_once app_path('auth/auth_guard.php');
-// Load the database connection used for pickup request updates and reads.
 require_once app_path('database/db.php');
 
-// Require admin role for this page.
 requireAdmin();
 $active_page = 'pickup_requests';
 
@@ -30,21 +22,17 @@ if (!empty($_SESSION['status_error'])) {
 
 $allowed_statuses = array('pending', 'done', 'declined');
 
-/* ---------------------------------------------------------------------
- * UPDATE STATUS — pending / done / declined
- * ------------------------------------------------------------------- */
-// If the admin updates a request status, validate the ID and status before changing the row.
+// Admins may assign one of the three database-supported statuses.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
     $request_id = (int) ($_POST['request_id'] ?? 0);
     $new_status = $_POST['status'] ?? '';
 
-    // Only allow known statuses so invalid values cannot be stored in the database.
-    if ($request_id > 0 && in_array($new_status, $allowed_statuses, true)) {
-        // Update the request row to the chosen status for that pickup ID.
+    if (!valid_csrf_token()) {
+        $_SESSION['status_error'] = "Invalid form submission. Please try again.";
+    } elseif ($request_id > 0 && in_array($new_status, $allowed_statuses, true)) {
         $update_stmt = $conn->prepare("UPDATE pickup_requests SET states = ? WHERE id = ?");
-           // Execute the prepared statement with the status and request ID safely supplied.
           $update_stmt->bind_param("si", $new_status, $request_id);
-          if ($update_stmt->execute()) {
+          if ($update_stmt->execute() && $update_stmt->affected_rows === 1) {
             $_SESSION['status_message'] = "Request #{$request_id} marked as " . ucfirst($new_status) . ".";
         } else {
             $_SESSION['status_error'] = "Failed to update the request. Please try again.";
@@ -53,22 +41,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
     } else {
         $_SESSION['status_error'] = "Invalid update request.";
     }
-
-    // Redirect back to this page after the POST so a refresh does not resubmit the same update.
     header("Location: " . $_SERVER['PHP_SELF']);
-    // Stop immediately so no extra code runs after the redirect.
     exit;
 }
 
-/* ---------------------------------------------------------------------
- * FETCH ALL PICKUP REQUESTS — joined with the requesting user
- * ------------------------------------------------------------------- */
-// Pull each request together with the resident username so the admin can see who submitted it.
+// Join residents so the admin can identify each request.
 $requests = [];
 $fetch_stmt = $conn->prepare(
     "SELECT pr.id, pr.waste_type, pr.pickup_date, pr.time_slot, pr.notes, pr.states, pr.created_at,
             u.username
-     FROM pickup_requests pr
+    FROM pickup_requests pr
      JOIN users u ON u.id = pr.user_id
      ORDER BY pr.created_at DESC"
 );
@@ -143,6 +125,7 @@ if ($fetch_stmt) {
                         <td><?php echo date('d M Y', strtotime($req['created_at'])); ?></td>
                         <td class="update-cell">
                             <form method="POST" class="status-update-form">
+                                <?php echo csrf_field(); ?>
                                 <input type="hidden" name="request_id" value="<?php echo (int) $req['id']; ?>">
                                 <select name="status">
                                     <option value="pending" <?php echo $req['states'] === 'pending' ? 'selected' : ''; ?>>Pending</option>

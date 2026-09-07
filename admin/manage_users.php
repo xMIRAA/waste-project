@@ -1,25 +1,14 @@
 <?php
-// ------------------------------------------------------
-// manage_users.php
-// Lets an admin create new user accounts and search for
-// existing users by name, username, or contact details.
-// ------------------------------------------------------
 
 require_once __DIR__ . '/../config.php';
 
-// Protect this page so only logged-in admins can access it.
 require_once app_path('auth/auth_guard.php');
-// Load the shared database connection needed for account and search queries.
 require_once app_path('database/db.php');
 
-// Only admin users are allowed to manage accounts.
 requireAdmin();
 $active_page = 'users';
 
-/* ---------------------------------------------------------------------
- * ADD USER — insert a new login record into users
- * ------------------------------------------------------------------- */
-// Store success or error messages for the add-user form after redirecting back to the page.
+// Flash messages are read after each POST/redirect cycle.
 $add_user_message = '';
 $add_user_error   = '';
 $delete_user_message = '';
@@ -53,7 +42,13 @@ if (!empty($_SESSION['update_user_error'])) {
     unset($_SESSION['update_user_error']);
 }
 
-// If the admin submits an edit form, validate and update the selected account.
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !valid_csrf_token()) {
+    $_SESSION['update_user_error'] = "Invalid form submission. Please try again.";
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit;
+}
+
+// Update a selected account without exposing its stored password hash.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_user_submit'])) {
     $update_user_id = (int) ($_POST['user_id'] ?? 0);
     $username       = trim($_POST['username'] ?? '');
@@ -121,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_user_submit'])
     exit;
 }
 
-// If the admin submits a delete form, remove the selected account and its related records.
+// Related requests and complaints are removed by the database cascade.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user_submit'])) {
     $delete_user_id = (int) ($_POST['user_id'] ?? 0);
 
@@ -149,7 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user_submit'])
     exit;
 }
 
-// If the admin submits the add-user form, validate and insert the new account.
+// Create a new account after validating all fields server-side.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_user_submit'])) {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
@@ -160,16 +155,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_user_submit'])) {
 
     $allowed_roles = ['admin', 'resident'];
 
-    // Reject incomplete form data before creating a user record.
     if ($username === '' || $password === '' || $role === '' || $name === '' || $contact === '' || $address === '') {
         $_SESSION['add_user_error'] = "Please fill in all required fields.";
+    } elseif (strlen($username) > 50 || strlen($name) > 100 || strlen($address) > 255 || strlen($contact) > 20) {
+        $_SESSION['add_user_error'] = "One or more fields exceed the allowed length.";
+    } elseif (!preg_match('/^[0-9+\-\s]{7,20}$/', $contact)) {
+        $_SESSION['add_user_error'] = "Please enter a valid contact number.";
     } elseif (!in_array($role, $allowed_roles, true)) {
         $_SESSION['add_user_error'] = "Invalid role selected. Please choose admin or resident.";
     } else {
-        // Hash the password before saving it so the stored value is not plain text.
         $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
-        // Insert the new user record with the hashed password and chosen role.
         $insert_stmt = $conn->prepare(
             "INSERT INTO users (username, password, role, name, address, contact)
              VALUES (?, ?, ?, ?, ?, ?)"
@@ -198,28 +194,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_user_submit'])) {
         }
     }
 
-    // Redirect back to the page after the POST so the form is not resubmitted on refresh.
     header("Location: " . $_SERVER['PHP_SELF']);
-    // Stop execution immediately so the redirect is the final action.
     exit;
 }
 
-/* ---------------------------------------------------------------------
- * REGISTERED USERS — fetch all login accounts from users
- * ------------------------------------------------------------------- */
-// Load the current list of users for the table on the page.
+// Load all accounts for the main user table.
 $users = [];
 $users_result = $conn->query("SELECT id, username, role, name, address, contact, created_at FROM users ORDER BY created_at DESC");
 if ($users_result) {
     $users = $users_result->fetch_all(MYSQLI_ASSOC);
 }
 
-/* ---------------------------------------------------------------------
- * SEARCH USERS — by name, username, or contact
- * Queries the real `users` table. Column choice is restricted to
- * a whitelist so the field name is never taken directly from input.
- * ------------------------------------------------------------------- */
-// Limit the search to safe columns only so a user cannot query arbitrary database fields.
+// Whitelist searchable columns so input cannot become a SQL identifier.
 $search_field_columns = [
     'name'     => 'name',
     'username' => 'username',
@@ -237,7 +223,6 @@ $search_results   = [];
 $search_error     = '';
 $search_performed = false;
 
-// If the user pressed the search button, run a filtered lookup against the users table.
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
     $search_performed = true;
     $search_query = trim($_GET['search_query'] ?? '');
@@ -253,7 +238,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
         $column    = $search_field_columns[$search_field];
         $like_term = '%' . $search_query . '%';
 
-        // Search only the selected field using a wildcard match to find partially matching records.
         $search_stmt = $conn->prepare(
             "SELECT id, username, role, name, address, contact, created_at
              FROM users
@@ -271,7 +255,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['search_submit'])) {
     }
 }
 
-// Load the selected account when the admin opens an edit form.
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['edit_user'])) {
     $edit_user_id = (int) $_GET['edit_user'];
     if ($edit_user_id > 0) {
@@ -319,6 +302,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['edit_user'])) {
         <?php endif; ?>
 
         <form class="waste-form" action="" method="POST">
+              <?php echo csrf_field(); ?>
 
             <div class="form-group">
                 <label for="username">Username</label>
@@ -402,6 +386,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['edit_user'])) {
         <p class="form-subtitle">Update the selected user's account details.</p>
 
         <form class="waste-form" action="" method="POST">
+              <?php echo csrf_field(); ?>
             <input type="hidden" name="user_id" value="<?php echo (int) $edit_user['id']; ?>">
 
             <div class="form-group">
@@ -488,6 +473,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['edit_user'])) {
                               <a href="?edit_user=<?php echo (int) $user['id']; ?>" class="edit-user-button">Edit</a>
                               <?php if ((int) $user['id'] !== (int) $_SESSION['user_id']): ?>
                                   <form action="" method="POST" onsubmit="return confirm('Delete this user account? Related requests and complaints will also be deleted.');">
+                                       <?php echo csrf_field(); ?>
                                       <input type="hidden" name="user_id" value="<?php echo (int) $user['id']; ?>">
                                       <button type="submit" name="delete_user_submit" value="1" class="delete-user-button">Delete</button>
                                   </form>
@@ -548,6 +534,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['edit_user'])) {
                               <a href="?edit_user=<?php echo (int) $user['id']; ?>" class="edit-user-button">Edit</a>
                               <?php if ((int) $user['id'] !== (int) $_SESSION['user_id']): ?>
                                   <form action="" method="POST" onsubmit="return confirm('Delete this user account? Related requests and complaints will also be deleted.');">
+                                       <?php echo csrf_field(); ?>
                                       <input type="hidden" name="user_id" value="<?php echo (int) $user['id']; ?>">
                                       <button type="submit" name="delete_user_submit" value="1" class="delete-user-button">Delete</button>
                                   </form>

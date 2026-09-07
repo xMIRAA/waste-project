@@ -200,6 +200,38 @@
     transition: background-color 0.2s ease;
 }
 
+.schedule-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.schedule-actions a,
+.schedule-actions button,
+.cancel-edit-button {
+    padding: 8px 10px;
+    border: 0;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.edit-schedule-button {
+    background-color: #1d9e75;
+    color: #ffffff;
+}
+
+.delete-schedule-button {
+    background-color: #b42318;
+    color: #ffffff;
+}
+
+.delete-form { margin: 0; }
+.cancel-edit-button { display: inline-block; background-color: #e2e0d6; color: #04342c; }
+
 @media (max-width: 700px) {
     .user-schedule-section { padding: 20px 14px; }
     .schedule-table { display: block; overflow-x: auto; min-width: 520px; }

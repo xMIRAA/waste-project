@@ -48,10 +48,10 @@ CREATE TABLE IF NOT EXISTS pickup_schedule (
 );
 
 -- Create the default resident account so a resident can log in during testing.
-INSERT INTO users (username, password, role) 
-VALUES ('ucsc', '$2y$10$5Jg5H0n61N3QVyFD1e53g.F.XvysjBBUvgi0Lq/80IDREPfezryG.', 'resident')
+INSERT INTO users (username, password, role, name, address, contact)
+VALUES ('ucsc', '$2y$10$5Jg5H0n61N3QVyFD1e53g.F.XvysjBBUvgi0Lq/80IDREPfezryG.', 'resident', 'UCSC Resident', 'UCSC Campus', '0000000000')
 ON DUPLICATE KEY UPDATE id=id;
 -- Create the default admin account and set the role to admin because admin-only access must be restricted by role.
-INSERT INTO users (username, password, role) 
-VALUES ('admin', '$2y$10$SxNNnTu1RDzhPxXOAYK9c.5/WO.mMnx2QHEFek8OSPvT6Sxe5EQCi', 'admin')
+INSERT INTO users (username, password, role, name, address, contact)
+VALUES ('admin', '$2y$10$SxNNnTu1RDzhPxXOAYK9c.5/WO.mMnx2QHEFek8OSPvT6Sxe5EQCi', 'admin', 'System Administrator', 'CleanCity Office', '0000000000')
 ON DUPLICATE KEY UPDATE id=id;

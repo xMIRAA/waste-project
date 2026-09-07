@@ -1,49 +1,92 @@
 <?php
-// ------------------------------------------------------
-// manage_schedule.php
-// Lets an admin add weekly pickup dates and display the
-// current schedule for residents and operations teams.
-// ------------------------------------------------------
 
 require_once __DIR__ . '/../config.php';
 
-// Protect this page so only logged-in admins can access it.
 require_once app_path('auth/auth_guard.php');
-// Load the database connection used for schedule queries and inserts.
 require_once app_path('database/db.php');
 
-// Only admins are allowed to create or edit the collection schedule.
 requireAdmin();
 $active_page = 'schedule';
 
 $success_message = '';
 $error_message = '';
+$edit_schedule = null;
 
-/* Handle form submission for adding a new schedule */
-// If the admin submits a new schedule entry, validate the fields and insert it.
+if (!empty($_SESSION['schedule_message'])) {
+    $success_message = $_SESSION['schedule_message'];
+    unset($_SESSION['schedule_message']);
+}
+if (!empty($_SESSION['schedule_error'])) {
+    $error_message = $_SESSION['schedule_error'];
+    unset($_SESSION['schedule_error']);
+}
+
+/* Handle schedule CRUD form submissions */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!valid_csrf_token()) {
+        $_SESSION['schedule_error'] = "Invalid form submission. Please try again.";
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit;
+    }
+
+    $action      = $_POST['action'] ?? 'create';
+    $schedule_id = (int) ($_POST['schedule_id'] ?? 0);
     $pickup_date = trim($_POST['pickup_date'] ?? '');
     $waste_type  = trim($_POST['waste_type'] ?? '');
     $area        = trim($_POST['area'] ?? '');
 
-    // Require each schedule field before inserting a new row.
-    if (!empty($pickup_date) && !empty($waste_type) && !empty($area)) {
-        // Insert the schedule row with the selected date, waste type, and service area.
-        $stmt = $conn->prepare("INSERT INTO pickup_schedule (pickup_date, waste_type, area) VALUES (?, ?, ?)");
-        // Use a prepared statement so the form values are bound safely instead of being placed directly into SQL.
-        $stmt->bind_param("sss", $pickup_date, $waste_type, $area);
-        if ($stmt->execute()) {
-            $success_message = "Pickup schedule added successfully.";
+    if ($action === 'delete' && $schedule_id > 0) {
+        $stmt = $conn->prepare("DELETE FROM pickup_schedule WHERE id = ?");
+        $stmt->bind_param("i", $schedule_id);
+        if ($stmt->execute() && $stmt->affected_rows === 1) {
+            $_SESSION['schedule_message'] = "Pickup schedule deleted successfully.";
         } else {
-            $error_message = "Error adding schedule. Please try again.";
+            $_SESSION['schedule_error'] = "Schedule not found or could not be deleted.";
         }
-    } else {
-        $error_message = "All fields are required.";
+    } elseif ($action === 'create' || $action === 'update') {
+        $date_obj = DateTime::createFromFormat('Y-m-d', $pickup_date);
+        $valid_date = $date_obj && $date_obj->format('Y-m-d') === $pickup_date;
+
+        if (!$valid_date || $waste_type === '' || $area === '') {
+            $_SESSION['schedule_error'] = "A valid date, waste type, and area are required.";
+        } elseif (strlen($waste_type) > 50 || strlen($area) > 100) {
+            $_SESSION['schedule_error'] = "Waste type or area is too long.";
+        } elseif ($action === 'update' && $schedule_id > 0) {
+            $stmt = $conn->prepare("UPDATE pickup_schedule SET pickup_date = ?, waste_type = ?, area = ? WHERE id = ?");
+            $stmt->bind_param("sssi", $pickup_date, $waste_type, $area, $schedule_id);
+            if ($stmt->execute()) {
+                $_SESSION['schedule_message'] = "Pickup schedule updated successfully.";
+            } else {
+                $_SESSION['schedule_error'] = "Error updating schedule. Please try again.";
+            }
+        } elseif ($action === 'create') {
+            $stmt = $conn->prepare("INSERT INTO pickup_schedule (pickup_date, waste_type, area) VALUES (?, ?, ?)");
+            $stmt->bind_param("sss", $pickup_date, $waste_type, $area);
+            if ($stmt->execute()) {
+                $_SESSION['schedule_message'] = "Pickup schedule added successfully.";
+            } else {
+                $_SESSION['schedule_error'] = "Error adding schedule. Please try again.";
+            }
+        } else {
+            $_SESSION['schedule_error'] = "Invalid schedule selected.";
+        }
+    }
+
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['edit_schedule'])) {
+    $edit_schedule_id = (int) $_GET['edit_schedule'];
+    if ($edit_schedule_id > 0) {
+        $edit_stmt = $conn->prepare("SELECT id, pickup_date, waste_type, area FROM pickup_schedule WHERE id = ?");
+        $edit_stmt->bind_param("i", $edit_schedule_id);
+        $edit_stmt->execute();
+        $edit_schedule = $edit_stmt->get_result()->fetch_assoc() ?: null;
     }
 }
 
-/* Fetch existing schedules to list in the table */
-// Read the saved schedule rows so the current week and future dates can be displayed.
+// Load schedules for the admin table.
 $stmt = $conn->prepare("SELECT * FROM pickup_schedule ORDER BY pickup_date ASC");
 $stmt->execute();
 $schedules = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -67,7 +110,7 @@ $schedules = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     <!-- Form Section -->
     <div class="form-card-wrapper">
       <div class="form-card">
-          <h1 class="form-title">Add Schedule</h1>
+          <h1 class="form-title"><?php echo $edit_schedule ? 'Edit Schedule' : 'Add Schedule'; ?></h1>
           <p class="form-subtitle">Fill in the collection details below</p>
 
           <?php if (!empty($success_message)): ?>
@@ -79,23 +122,31 @@ $schedules = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
           <?php endif; ?>
 
           <form action="manage_schedule.php" method="POST" class="waste-form">
+              <?php echo csrf_field(); ?>
+              <input type="hidden" name="action" value="<?php echo $edit_schedule ? 'update' : 'create'; ?>">
+              <?php if ($edit_schedule): ?>
+                  <input type="hidden" name="schedule_id" value="<?php echo (int) $edit_schedule['id']; ?>">
+              <?php endif; ?>
 
               <div class="form-group">
                   <label for="pickup_date">Pickup Date</label>
-                  <input type="date" id="pickup_date" name="pickup_date" required>
+                  <input type="date" id="pickup_date" name="pickup_date" value="<?php echo htmlspecialchars($edit_schedule['pickup_date'] ?? ''); ?>" required>
               </div>
 
               <div class="form-group">
                   <label for="waste_type">Waste Type</label>
-                  <input type="text" id="waste_type" name="waste_type" placeholder="e.g. Organic, Recyclable" required>
+                  <input type="text" id="waste_type" name="waste_type" value="<?php echo htmlspecialchars($edit_schedule['waste_type'] ?? ''); ?>" placeholder="e.g. Organic, Recyclable" maxlength="50" required>
               </div>
 
               <div class="form-group">
                   <label for="area">Area / Zone</label>
-                  <input type="text" id="area" name="area" placeholder="e.g. Zone A, Downtown" required>
+                  <input type="text" id="area" name="area" value="<?php echo htmlspecialchars($edit_schedule['area'] ?? ''); ?>" placeholder="e.g. Zone A, Downtown" maxlength="100" required>
               </div>
 
-              <button type="submit" class="btn-primary full">Add Schedule</button>
+              <button type="submit" class="btn-primary full"><?php echo $edit_schedule ? 'Save Changes' : 'Add Schedule'; ?></button>
+              <?php if ($edit_schedule): ?>
+                  <a href="manage_schedule.php" class="cancel-edit-button">Cancel</a>
+              <?php endif; ?>
 
           </form>
       </div>
@@ -113,6 +164,7 @@ $schedules = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                     <th>Date</th>
                     <th>Waste Type</th>
                     <th>Area / Zone</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -125,13 +177,22 @@ $schedules = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                     <td><?php echo date('d M Y', strtotime($row['pickup_date'])); ?></td>
                     <td><?php echo htmlspecialchars($row['waste_type']); ?></td>
                     <td><?php echo htmlspecialchars($row['area']); ?></td>
+                    <td class="schedule-actions">
+                        <a href="?edit_schedule=<?php echo (int) $row['id']; ?>" class="edit-schedule-button">Edit</a>
+                        <form action="manage_schedule.php" method="POST" class="delete-form" onsubmit="return confirm('Delete this pickup schedule?');">
+                            <?php echo csrf_field(); ?>
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="schedule_id" value="<?php echo (int) $row['id']; ?>">
+                            <button type="submit" class="delete-schedule-button">Delete</button>
+                        </form>
+                    </td>
                 </tr>
             <?php
                 }
             } else {
             ?>
                 <tr>
-                    <td colspan="3" style="text-align:center;">
+                    <td colspan="4" style="text-align:center;">
                         No pickup schedule available.
                     </td>
                 </tr>
