@@ -42,7 +42,6 @@ if (!empty($_SESSION['update_user_error'])) {
     unset($_SESSION['update_user_error']);
 }
 
-// Update a selected account without exposing its stored password hash.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_user_submit'])) {
     $update_user_id = (int) ($_POST['user_id'] ?? 0);
     $username       = trim($_POST['username'] ?? '');
@@ -110,7 +109,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_user_submit'])
     exit;
 }
 
-// Related requests and complaints are removed by the database cascade.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user_submit'])) {
     $delete_user_id = (int) ($_POST['user_id'] ?? 0);
 

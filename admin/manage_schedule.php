@@ -21,7 +21,6 @@ if (!empty($_SESSION['schedule_error'])) {
     unset($_SESSION['schedule_error']);
 }
 
-/* Handle schedule CRUD form submissions */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action      = $_POST['action'] ?? 'create';
     $schedule_id = (int) ($_POST['schedule_id'] ?? 0);
@@ -80,7 +79,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['edit_schedule'])) {
     }
 }
 
-// Load schedules for the admin table.
 $stmt = $conn->prepare("SELECT * FROM pickup_schedule ORDER BY pickup_date ASC");
 $stmt->execute();
 $schedules = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
